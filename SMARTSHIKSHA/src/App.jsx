@@ -10,12 +10,13 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
-        
+<Route path="/login" element={<Dashboard />} />        
         
        
       </Routes>
     </Router>
   );
 }
+
 
 export default App;
