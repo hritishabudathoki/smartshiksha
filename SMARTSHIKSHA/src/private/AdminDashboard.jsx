@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
-import './AdminDashboard.css';
 
+
+
+
+import { MdHome, MdPeople, MdEventNote, MdCampaign, MdMenuBook, MdAttachMoney, MdSchool, MdPerson, MdAnnouncement } from 'react-icons/md';
+import barImg from '../assets/bar.jpg';
 
 const sidebarItems = [
   { label: 'Home', icon: <MdHome /> },
