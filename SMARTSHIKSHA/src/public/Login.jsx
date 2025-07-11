@@ -1,36 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Login.css';
-import loginImage from '../assets/div.jpg';
+import '../styles/Login.css';
+import loginImage from '../assets/read.png';
 import logoIcon from '../assets/wow.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    navigate('/dashboard');
+
+    if (!role) {
+      alert('Please select a role before continuing.');
+      return;
+    }
+
+    navigate(`/dashboard/${role.toLowerCase()}`);
   };
 
   return (
     <div className="login-container">
       <div className="login-wrapper">
 
-       
+        {/* Left Side Image */}
         <div className="login-image">
           <img src={loginImage} alt="Login Visual" />
         </div>
 
-        
+        {/* Right Side Card */}
         <div className="login-card">
-         <h1 className="logo">
-  <img src={logoIcon} alt="Logo" className="logo-icon" />
-  Smart Shiksha 
-</h1>
-
+          <h1 className="logo">
+            <img src={logoIcon} alt="Logo" className="logo-icon" />
+            Smart Shiksha
+          </h1>
 
           <div className="login-header">
             <h2>WELCOME BACK</h2>
@@ -60,7 +65,29 @@ const Login = () => {
                 placeholder="Enter your password"
                 required
               />
-              <a href="/forgot-password" className="forgot-password">Forgot password</a>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="role">Login as</label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+              >
+                <option value="">Select Role</option>
+                <option value="Admin">Admin</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Student">Student</option>
+              </select>
+            </div>
+
+            <div className="form-extras">
+              <label>
+                <input type="checkbox" />
+                Remember me
+              </label>
+              <a href="/forgot-password" className="forgot-password">Forgot password?</a>
             </div>
 
             <button type="submit" className="signin-button">Sign in</button>
