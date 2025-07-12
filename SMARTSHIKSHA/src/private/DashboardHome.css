@@ -1,0 +1,202 @@
+.dashboard-home {
+  padding: 32px 0 0 0;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+.dashboard-home h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #4b2996;
+}
+.dashboard-home-sub {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 32px;
+}
+.dashboard-home-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: center;
+  margin-bottom: 56px;
+}
+.dashboard-home-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(44, 19, 56, 0.08);
+  padding: 28px 32px;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1 1 220px;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+.dashboard-home-card-icon {
+  font-size: 2.2rem;
+  color: #6c3fc7;
+  background: #f3eaff;
+  border-radius: 50%;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dashboard-home-card-info {
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-home-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #222;
+}
+.dashboard-home-card-label {
+  color: #888;
+  font-size: 1rem;
+}
+.dashboard-features {
+  margin-top: 0;
+  padding: 24px 0 0 0;
+  border-top: 2px solid #f0f0f0;
+}
+.dashboard-features-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 18px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  width: 100%;
+  display: block;
+}
+.dashboard-features-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: center;
+  align-items: flex-start;
+}
+.dashboard-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 140px;
+  height: 180px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(44,19,56,0.08);
+  padding: 18px 10px 12px 10px;
+  transition: box-shadow 0.13s, transform 0.13s;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+.dashboard-feature:hover {
+  box-shadow: 0 6px 24px rgba(44,19,56,0.13);
+  transform: translateY(-4px) scale(1.04);
+}
+.dashboard-feature-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  background: #f7f7fa;
+  box-shadow: 0 1px 4px rgba(44,19,56,0.06);
+}
+.dashboard-feature-caption {
+  font-size: 1.01rem;
+  color: #333;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 2px;
+  letter-spacing: 0.2px;
+  word-break: break-word;
+  max-width: 100%;
+}
+.dashboard-featured-lms {
+  margin-top: 16px;
+  background: #f7f9fa;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(44,19,56,0.10);
+  padding: 32px 24px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.dashboard-featured-lms-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-top: 0;
+  margin-bottom: 2px;
+  letter-spacing: 0.7px;
+  text-align: center;
+  width: 100%;
+  display: block;
+}
+.dashboard-featured-lms-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  justify-content: center;
+}
+.dashboard-featured-lms-img {
+  width: 220px;
+  max-width: 40vw;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(44,19,56,0.10);
+  background: #fff;
+}
+.dashboard-featured-lms-desc {
+  max-width: 420px;
+  font-size: 1.08rem;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.6;
+  background: none;
+  padding: 0 8px;
+}
+@media (max-width: 900px) {
+  .dashboard-featured-lms-content {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .dashboard-featured-lms-img {
+    width: 90vw;
+    max-width: 320px;
+  }
+  .dashboard-featured-lms-desc {
+    max-width: 98vw;
+    text-align: center;
+  }
+}
+@media (max-width: 700px) {
+  .dashboard-home-cards {
+    flex-direction: column;
+    gap: 16px;
+    max-width: 100vw;
+  }
+  .dashboard-home-card {
+    min-width: 0;
+    padding: 18px 8px;
+    max-width: 100vw;
+  }
+  .dashboard-features-list {
+    gap: 16px;
+  }
+  .dashboard-feature {
+    width: 100px;
+    height: 120px;
+    padding: 10px 2px 8px 2px;
+  }
+  .dashboard-feature-img {
+    width: 44px;
+    height: 44px;
+  }
+} 
