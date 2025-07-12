@@ -1,0 +1,190 @@
+/* Container and Layout */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-wrapper {
+  display: flex;
+  background: #ffffff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 900px;
+  width: 100%;
+}
+
+/* Left side - Image */
+.login-image {
+  flex: 1;
+  min-width: 300px;
+  background: #e0e7ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.login-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+/* Right side - Card */
+.login-card {
+  flex: 1;
+  padding: 40px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  font-size: 0px;
+  font-weight: 700;
+  color: #2563eb;
+  margin-bottom: 30px;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+/* Headers */
+.login-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.login-header p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 30px;
+}
+
+/* Form */
+.login-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group select {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus,
+.form-group select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* Checkbox and Forgot Password */
+.form-extras {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0 30px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.form-extras input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.forgot-password {
+  color: #2563eb;
+  text-decoration: none;
+  transition: text-decoration 0.3s ease;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* Button */
+.signin-button {
+  width: 100%;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 14px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.signin-button:hover {
+  background-color: #1e40af;
+}
+
+/* Signup link */
+.signup-link {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.signup-link a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-wrapper {
+    flex-direction: column;
+    max-width: 400px;
+  }
+
+  .login-image {
+    padding: 10px;
+  }
+
+  .login-card {
+    padding: 30px 25px;
+  }
+}
