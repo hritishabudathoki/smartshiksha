@@ -82,13 +82,7 @@ const Login = () => {
               </select>
             </div>
 
-            <div className="form-extras">
-              <label>
-                <input type="checkbox" />
-                Remember me
-              </label>
-              <a href="/forgot-password" className="forgot-password">Forgot password?</a>
-            </div>
+
 
             <button type="submit" className="signin-button">Sign in</button>
           </form>
