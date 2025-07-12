@@ -1,189 +1,399 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from '../components/Sidebar';
+import logoIcon from '../assets/wow.png';
 import '../styles/TeacherDashboard.css';
-import DashboardHome from './DashboardHome';
-import MockTable from './MockTable';
-import MockList from './MockList';
-import TopBar from './TopBar';
+import { FaClipboardList, FaClipboardCheck, FaBell } from 'react-icons/fa';
 
-const sidebarItems = [
-  { label: 'Home', icon: <span role="img" aria-label="home">🏠</span> },
-  { label: 'My Classes', icon: <span role="img" aria-label="class">📚</span> },
-  { label: 'My Students', icon: <span role="img" aria-label="students">👨‍🎓</span> },
-  { label: 'Attendance', icon: <span role="img" aria-label="attendance">✅</span> },
-  { label: 'Results', icon: <span role="img" aria-label="results">🎓</span> },
-  { label: 'Profile', icon: <span role="img" aria-label="profile">👤</span> },
+const initialReports = [
+  { id: 1, title: 'Math Progress', student: 'John Doe', status: 'Reviewed' },
+  { id: 2, title: 'Science Project', student: 'Jane Smith', status: 'Pending' },
 ];
-
-const mockNotifications = [
-  { title: 'Assignment Graded', description: 'You graded Assignment 2 for Class 10A.' },
-  { title: 'Lesson Updated', description: 'Lesson “Algebra” updated for Class 9B.' },
-  { title: 'New Student Added', description: 'Student “Riya” joined Class 8C.' },
+const initialAttendance = [
+  { id: 1, student: 'John Doe', date: '2024-06-01', status: 'Present' },
+  { id: 2, student: 'Jane Smith', date: '2024-06-01', status: 'Absent' },
 ];
-
-const teacherStats = [
-  { label: 'My Classes', value: 5, icon: <span role="img" aria-label="class">📚</span> },
-  { label: 'My Students', value: 120, icon: <span role="img" aria-label="students">👨‍🎓</span> },
-  { label: 'Lessons', value: 22, icon: <span role="img" aria-label="lessons">📖</span> },
-  { label: 'Assignments', value: 8, icon: <span role="img" aria-label="assignments">📝</span> },
+const initialNotifications = [
+  { id: 1, title: 'Exam Schedule Update', message: 'Mathematics exam rescheduled to Friday', date: '2024-01-15', priority: 'High' },
+  { id: 2, title: 'Fee Due Reminder', message: 'Please pay your fees before month end', date: '2024-01-20', priority: 'Medium' },
 ];
-
-const mockMyClasses = [
-  { className: '10A', subject: 'Math', students: ['Riya', 'Aman', 'Priya'] },
-  { className: '9B', subject: 'Science', students: ['Manas', 'Sita', 'Rahul'] },
+const initialStudents = [
+  { id: 1, name: 'John Doe', email: 'john@example.com', class: '10A' },
+  { id: 2, name: 'Jane Smith', email: 'jane@example.com', class: '10B' },
 ];
-const mockMyStudents = [
-  ['Riya', '10A'],
-  ['Manas', '9B'],
-];
-const mockMyLessons = [
-  ['Algebra', '10A'],
-  ['Biology', '9B'],
-];
-const mockProfile = ['Name: Alex', 'Email: teacher@school.com', 'Department: Science'];
 
 const TeacherDashboard = () => {
-  const [activeItem, setActiveItem] = useState('Home');
-  // Attendance and results state
-  const [attendance, setAttendance] = useState({}); // { '10A': { 'Riya': 'Present', ... }, ... }
-  const [results, setResults] = useState({}); // { '10A': { 'Riya': 'A', ... }, ... }
+  // For demonstration, set role here. Replace with real auth logic as needed.
+  const role = 'teacher'; // Change to 'admin' to see CRUD, 'teacher' for view-only
+  const [section, setSection] = useState('home');
+  const [reports, setReports] = useState(initialReports);
+  const [attendance, setAttendance] = useState(initialAttendance);
+  const [notifications, setNotifications] = useState(initialNotifications);
+  // Reports CRUD
+  const [reportEditId, setReportEditId] = useState(null);
+  const [reportForm, setReportForm] = useState({ title: '', student: '', status: '' });
+  // Attendance CRUD
+  const [attendanceEditId, setAttendanceEditId] = useState(null);
+  const [attendanceForm, setAttendanceForm] = useState({ student: '', date: '', status: '' });
+  // Students CRUD
+  const [students, setStudents] = useState(initialStudents);
+  const [studentEditId, setStudentEditId] = useState(null);
+  const [studentForm, setStudentForm] = useState({ name: '', email: '', class: '' });
+
+  // Modal state for pop-ups
+  const [showReportModal, setShowReportModal] = useState(false);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
-  const [showResultModal, setShowResultModal] = useState(false);
-  const [currentClass, setCurrentClass] = useState(null);
-  const [attendanceForm, setAttendanceForm] = useState({});
-  const [resultForm, setResultForm] = useState({});
+  const [showStudentModal, setShowStudentModal] = useState(false);
 
-  const handleSidebarClick = (label) => {
-    setActiveItem(label);
-  };
+  // Reports handlers
+  const handleReportEdit = (r) => { setReportEditId(r.id); setReportForm({ title: r.title, student: r.student, status: r.status }); };
+  const handleReportDelete = (id) => setReports(reports.filter((r) => r.id !== id));
+  const handleReportChange = (e) => setReportForm({ ...reportForm, [e.target.name]: e.target.value });
+  const handleReportSave = () => { setReports(reports.map((r) => (r.id === reportEditId ? { ...r, ...reportForm } : r))); setReportEditId(null); setReportForm({ title: '', student: '', status: '' }); };
+  const handleReportAdd = () => { setReports([...reports, { id: Date.now(), ...reportForm }]); setReportForm({ title: '', student: '', status: '' }); };
 
-  const handleMarkAttendance = (classObj) => {
-    setCurrentClass(classObj);
-    setAttendanceForm(
-      Object.fromEntries(classObj.students.map(s => [s, attendance[classObj.className]?.[s] || 'Present']))
-    );
-    setShowAttendanceModal(true);
-  };
-  const handlePublishResult = (classObj) => {
-    setCurrentClass(classObj);
-    setResultForm(
-      Object.fromEntries(classObj.students.map(s => [s, results[classObj.className]?.[s] || '']))
-    );
-    setShowResultModal(true);
-  };
-  const handleAttendanceChange = (student, value) => {
-    setAttendanceForm({ ...attendanceForm, [student]: value });
-  };
-  const handleResultChange = (student, value) => {
-    setResultForm({ ...resultForm, [student]: value });
-  };
-  const handleAttendanceSubmit = (e) => {
-    e.preventDefault();
-    setAttendance({ ...attendance, [currentClass.className]: attendanceForm });
-    setShowAttendanceModal(false);
-  };
-  const handleResultSubmit = (e) => {
-    e.preventDefault();
-    setResults({ ...results, [currentClass.className]: resultForm });
-    setShowResultModal(false);
-  };
+  // Attendance handlers
+  const handleAttendanceEdit = (a) => { setAttendanceEditId(a.id); setAttendanceForm({ student: a.student, date: a.date, status: a.status }); };
+  const handleAttendanceDelete = (id) => setAttendance(attendance.filter((a) => a.id !== id));
+  const handleAttendanceChange = (e) => setAttendanceForm({ ...attendanceForm, [e.target.name]: e.target.value });
+  const handleAttendanceSave = () => { setAttendance(attendance.map((a) => (a.id === attendanceEditId ? { ...a, ...attendanceForm } : a))); setAttendanceEditId(null); setAttendanceForm({ student: '', date: '', status: '' }); };
+  const handleAttendanceAdd = () => { setAttendance([...attendance, { id: Date.now(), ...attendanceForm }]); setAttendanceForm({ student: '', date: '', status: '' }); };
+
+  // Students handlers
+  const handleStudentEdit = (s) => { setStudentEditId(s.id); setStudentForm({ name: s.name, email: s.email, class: s.class }); };
+  const handleStudentDelete = (id) => setStudents(students.filter((s) => s.id !== id));
+  const handleStudentChange = (e) => setStudentForm({ ...studentForm, [e.target.name]: e.target.value });
+  const handleStudentSave = () => { setStudents(students.map((s) => (s.id === studentEditId ? { ...s, ...studentForm } : s))); setStudentEditId(null); setStudentForm({ name: '', email: '', class: '' }); };
+  const handleStudentAdd = () => { setStudents([...students, { id: Date.now(), ...studentForm }]); setStudentForm({ name: '', email: '', class: '' }); };
+
+  function renderSectionContent() {
+    if (section === 'home') {
+      return (
+        <div className="dashboard-overview">
+          <h2>Welcome, Teacher!</h2>
+          <div className="overview-cards">
+            <div className="overview-card">
+              <span className="overview-icon"><FaClipboardList /></span>
+              <h3>Total Reports</h3>
+              <p>{reports.length}</p>
+            </div>
+            <div className="overview-card">
+              <span className="overview-icon"><FaClipboardCheck /></span>
+              <h3>Attendance Records</h3>
+              <p>{attendance.length}</p>
+            </div>
+            <div className="overview-card">
+              <span className="overview-icon"><FaBell /></span>
+              <h3>Active Notifications</h3>
+              <p>{notifications.length}</p>
+            </div>
+          </div>
+          {/* Why SMART SHIKSHA Section */}
+          <div className="why-smart-shiksha-section">
+            <h2 style={{ textAlign: 'center', margin: '40px 0 20px' }}>Why SMART SHIKSHA?</h2>
+            <div className="why-features-grid">
+              <div className="why-feature-card">
+                <span role="img" aria-label="web" className="why-feature-icon">🌐</span>
+                <div className="why-feature-title">Web Based</div>
+              </div>
+              <div className="why-feature-card">
+                <span role="img" aria-label="affordable" className="why-feature-icon">💲</span>
+                <div className="why-feature-title">Affordable</div>
+              </div>
+              <div className="why-feature-card">
+                <span role="img" aria-label="security" className="why-feature-icon">🛡️</span>
+                <div className="why-feature-title">Data Security</div>
+              </div>
+              <div className="why-feature-card">
+                <span role="img" aria-label="user" className="why-feature-icon">👤</span>
+                <div className="why-feature-title">User Friendly</div>
+              </div>
+              <div className="why-feature-card">
+                <span role="img" aria-label="support" className="why-feature-icon">🧑‍💻</span>
+                <div className="why-feature-title">24x7 support</div>
+              </div>
+              <div className="why-feature-card">
+                <span role="img" aria-label="automation" className="why-feature-icon">⚙️</span>
+                <div className="why-feature-title">Automations</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (section === 'reports') {
+      return (
+        <div className="crud-table-card">
+          <h2>Reports</h2>
+          <Modal isOpen={showReportModal} onClose={() => setShowReportModal(false)}>
+            <div className="crud-form">
+              <h3>Add New Report</h3>
+              <input type="text" name="title" placeholder="Title" value={reportForm.title} onChange={handleReportChange} />
+              <input type="text" name="student" placeholder="Student" value={reportForm.student} onChange={handleReportChange} />
+              <input type="text" name="status" placeholder="Status" value={reportForm.status} onChange={handleReportChange} />
+              <button className="add-btn" onClick={() => { handleReportAdd(); setShowReportModal(false); }} disabled={!reportForm.title || !reportForm.student || !reportForm.status}>
+                Add Report
+              </button>
+            </div>
+          </Modal>
+          <table className="crud-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Student</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.map((report) => (
+                <tr key={report.id}>
+                  <td>{reportEditId === report.id ? (
+                    <input type="text" name="title" value={reportForm.title} onChange={handleReportChange} />
+                  ) : report.title}</td>
+                  <td>{reportEditId === report.id ? (
+                    <input type="text" name="student" value={reportForm.student} onChange={handleReportChange} />
+                  ) : report.student}</td>
+                  <td>{reportEditId === report.id ? (
+                    <input type="text" name="status" value={reportForm.status} onChange={handleReportChange} />
+                  ) : (
+                    <span className={`status-badge ${report.status.toLowerCase() === 'reviewed' ? 'status-active' : 'status-pending'}`}>
+                      {report.status}
+                    </span>
+                  )}</td>
+                  <td>
+                    {reportEditId === report.id ? (
+                      <button className="save-btn" onClick={handleReportSave}>Save</button>
+                    ) : (
+                      <>
+                        <button className="edit-btn" onClick={() => handleReportEdit(report)}>Edit</button>
+                        <button className="delete-btn" onClick={() => handleReportDelete(report.id)}>Delete</button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button className="add-btn" onClick={() => setShowReportModal(true)}>
+            <span className="add-icon">➕</span>Add Report
+          </button>
+        </div>
+      );
+    }
+    if (section === 'attendance') {
+      return (
+        <div className="crud-table-card">
+          <h2>Attendance</h2>
+          <Modal isOpen={showAttendanceModal} onClose={() => setShowAttendanceModal(false)}>
+            <div className="crud-form">
+              <h3>Add New Attendance Record</h3>
+              <input type="text" name="student" placeholder="Student" value={attendanceForm.student} onChange={handleAttendanceChange} />
+              <input type="date" name="date" placeholder="Date" value={attendanceForm.date} onChange={handleAttendanceChange} />
+              <input type="text" name="status" placeholder="Status" value={attendanceForm.status} onChange={handleAttendanceChange} />
+              <button className="add-btn" onClick={() => { handleAttendanceAdd(); setShowAttendanceModal(false); }} disabled={!attendanceForm.student || !attendanceForm.date || !attendanceForm.status}>
+                Add Attendance
+              </button>
+            </div>
+          </Modal>
+          <table className="crud-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {attendance.map((a) => (
+                <tr key={a.id}>
+                  <td>{attendanceEditId === a.id ? (
+                    <input type="text" name="student" value={attendanceForm.student} onChange={handleAttendanceChange} />
+                  ) : a.student}</td>
+                  <td>{attendanceEditId === a.id ? (
+                    <input type="date" name="date" value={attendanceForm.date} onChange={handleAttendanceChange} />
+                  ) : a.date}</td>
+                  <td>{attendanceEditId === a.id ? (
+                    <input type="text" name="status" value={attendanceForm.status} onChange={handleAttendanceChange} />
+                  ) : (
+                    <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-active' : 'status-inactive'}`}>
+                      {a.status}
+                    </span>
+                  )}</td>
+                  <td>
+                    {attendanceEditId === a.id ? (
+                      <button className="save-btn" onClick={handleAttendanceSave}>Save</button>
+                    ) : (
+                      <>
+                        <button className="edit-btn" onClick={() => handleAttendanceEdit(a)}>Edit</button>
+                        <button className="delete-btn" onClick={() => handleAttendanceDelete(a.id)}>Delete</button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button className="add-btn" onClick={() => setShowAttendanceModal(true)}>
+            <span className="add-icon">➕</span>Add Attendance
+          </button>
+        </div>
+      );
+    }
+    if (section === 'notifications') {
+      return (
+        <div className="crud-table-card">
+          <h2>Notifications</h2>
+          <table className="crud-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Message</th>
+                <th>Date</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              {notifications.map((notification) => (
+                <tr key={notification.id}>
+                  <td>{notification.title}</td>
+                  <td>{notification.message}</td>
+                  <td>{notification.date}</td>
+                  <td>
+                    <span className={`status-badge priority-${notification.priority.toLowerCase()}`}>
+                      {notification.priority}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+    if (section === 'students') {
+      if (role === 'admin') {
+        // CRUD table for admin
+        return (
+          <div className="crud-table-card">
+            <h2>Students</h2>
+            <Modal isOpen={showStudentModal} onClose={() => setShowStudentModal(false)}>
+              <div className="crud-form">
+                <h3>Add New Student</h3>
+                <input type="text" name="name" placeholder="Name" value={studentForm.name} onChange={e => setStudentForm({ ...studentForm, name: e.target.value })} />
+                <input type="email" name="email" placeholder="Email" value={studentForm.email} onChange={e => setStudentForm({ ...studentForm, email: e.target.value })} />
+                <input type="text" name="class" placeholder="Class" value={studentForm.class} onChange={e => setStudentForm({ ...studentForm, class: e.target.value })} />
+                <button className="add-btn" onClick={() => { handleStudentAdd(); setShowStudentModal(false); }} disabled={!studentForm.name || !studentForm.email || !studentForm.class}>
+                  Add Student
+                </button>
+              </div>
+            </Modal>
+            <table className="crud-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Class</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map((student) => (
+                  <tr key={student.id}>
+                    <td>{studentEditId === student.id ? (
+                      <input type="text" name="name" value={studentForm.name} onChange={e => setStudentForm({ ...studentForm, name: e.target.value })} />
+                    ) : student.name}</td>
+                    <td>{studentEditId === student.id ? (
+                      <input type="email" name="email" value={studentForm.email} onChange={e => setStudentForm({ ...studentForm, email: e.target.value })} />
+                    ) : student.email}</td>
+                    <td>{studentEditId === student.id ? (
+                      <input type="text" name="class" value={studentForm.class} onChange={e => setStudentForm({ ...studentForm, class: e.target.value })} />
+                    ) : student.class}</td>
+                    <td>
+                      {studentEditId === student.id ? (
+                        <button className="save-btn" onClick={() => {
+                          handleStudentSave();
+                          setStudentEditId(null);
+                          setStudentForm({ name: '', email: '', class: '' });
+                        }}>Save</button>
+                      ) : (
+                        <>
+                          <button className="edit-btn" onClick={() => { setStudentEditId(student.id); setStudentForm({ name: student.name, email: student.email, class: student.class }); }}>Edit</button>
+                          <button className="delete-btn" onClick={() => handleStudentDelete(student.id)}>Delete</button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button className="add-btn" onClick={() => setShowStudentModal(true)}>
+              <span className="add-icon">➕</span>Add Student
+            </button>
+          </div>
+        );
+      } else {
+        // View-only table for teacher
+        return (
+          <div className="crud-table-card">
+            <h2>Students</h2>
+            <table className="crud-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Class</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map((student) => (
+                  <tr key={student.id}>
+                    <td>{student.name}</td>
+                    <td>{student.email}</td>
+                    <td>{student.class}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+    }
+  }
 
   return (
-    <div>
-      <TopBar username="Alex" role="Teacher" />
-      <div className="dashboard-container">
-        <Sidebar items={sidebarItems} activeItem={activeItem} onItemClick={setActiveItem} />
-        <div className="dashboard-content">
-          <div className="dashboard-header">
-            {/* Removed old username display, now in TopBar */}
+    <div className="dashboard-layout">
+      <Sidebar role={role} section={section} onSectionChange={setSection} />
+      <div className="main-content">
+        {/* Modern Header */}
+        <header className="dashboard-header-bar">
+          <div className="header-left">
+            <img src={logoIcon} alt="Logo" className="header-logo" />
+            <span className="header-appname">SMART SHIKSHA</span>
           </div>
-          {activeItem === 'Home' && (
-            <DashboardHome
-              role="Teacher"
-              stats={[
-                { label: 'My Classes', value: mockMyClasses.length, icon: <span role="img" aria-label="class">📚</span> },
-                { label: 'My Students', value: mockMyClasses.reduce((acc, c) => acc + c.students.length, 0), icon: <span role="img" aria-label="students">👨‍🎓</span> },
-                { label: 'Results Published', value: Object.values(results).reduce((acc, r) => acc + Object.values(r || {}).filter(v => v).length, 0), icon: <span role="img" aria-label="results">🎓</span> },
-                { label: 'Attendance Marked', value: Object.values(attendance).reduce((acc, a) => acc + Object.values(a || {}).filter(v => v).length, 0), icon: <span role="img" aria-label="attendance">✅</span> },
-              ]}
-            />
-          )}
-          {activeItem === 'My Classes' && (
-            <MockTable columns={['Class', 'Subject']} data={mockMyClasses.map(c => [c.className, c.subject])} />
-          )}
-          {activeItem === 'Attendance' && (
-            <div>
-              <h2 style={{ color: '#6c3fc7', fontSize: '1.3rem', fontWeight: 600, margin: '24px 0 8px 0' }}>Mark Attendance</h2>
-              {mockMyClasses.map((c, idx) => (
-                <div key={idx} style={{ marginBottom: '32px', background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(44,19,56,0.06)', padding: '24px 28px' }}>
-                  <h4 style={{ color: '#6c3fc7', marginBottom: '12px' }}>{c.className} - {c.subject}</h4>
-                  <form onSubmit={e => { e.preventDefault(); }}>
-                    <table className="mock-table">
-                      <thead>
-                        <tr><th>Student</th><th>Status</th></tr>
-                      </thead>
-                      <tbody>
-                        {c.students.map((student, sidx) => (
-                          <tr key={sidx}>
-                            <td>{student}</td>
-                            <td>
-                              <select value={attendance[c.className]?.[student] || 'Present'} onChange={e => setAttendance({ ...attendance, [c.className]: { ...attendance[c.className], [student]: e.target.value } })} style={{ padding: '6px', borderRadius: '4px', border: '1px solid #ccc' }}>
-                                <option>Present</option>
-                                <option>Absent</option>
-                              </select>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                      <button type="button" onClick={() => setAttendance({ ...attendance, [c.className]: { ...attendance[c.className] } })} style={{ background: '#6c3fc7', color: '#fff', border: 'none', borderRadius: '4px', padding: '10px 24px', cursor: 'pointer' }}>Save</button>
-                    </div>
-                  </form>
-                </div>
-              ))}
-            </div>
-          )}
-          {activeItem === 'Results' && (
-            <div>
-              <h2 style={{ color: '#388e3c', fontSize: '1.3rem', fontWeight: 600, margin: '24px 0 8px 0' }}>Publish Results</h2>
-              {mockMyClasses.map((c, idx) => (
-                <div key={idx} style={{ marginBottom: '32px', background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(44,19,56,0.06)', padding: '24px 28px' }}>
-                  <h4 style={{ color: '#388e3c', marginBottom: '12px' }}>{c.className} - {c.subject}</h4>
-                  <form onSubmit={e => { e.preventDefault(); }}>
-                    <table className="mock-table">
-                      <thead>
-                        <tr><th>Student</th><th>Result</th></tr>
-                      </thead>
-                      <tbody>
-                        {c.students.map((student, sidx) => (
-                          <tr key={sidx}>
-                            <td>{student}</td>
-                            <td>
-                              <input value={results[c.className]?.[student] || ''} onChange={e => setResults({ ...results, [c.className]: { ...results[c.className], [student]: e.target.value } })} placeholder="Grade/Marks" style={{ padding: '6px', borderRadius: '4px', border: '1px solid #ccc', width: '120px' }} />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                      <button type="button" onClick={() => setResults({ ...results, [c.className]: { ...results[c.className] } })} style={{ background: '#388e3c', color: '#fff', border: 'none', borderRadius: '4px', padding: '10px 24px', cursor: 'pointer' }}>Save</button>
-                    </div>
-                  </form>
-                </div>
-              ))}
-            </div>
-          )}
-          {activeItem === 'My Students' && (
-            <MockTable columns={['Student', 'Class']} data={mockMyStudents} />
-          )}
-          {activeItem === 'My Lessons' && (
-            <MockTable columns={['Lesson', 'Class']} data={mockMyLessons} />
-          )}
-          {activeItem === 'Profile' && (
-            <MockList title="Profile" items={mockProfile} />
-          )}
-        </div>
+          <div className="header-right">
+            <span className="header-role">Teacher</span>
+            <span className="header-username">Teacher</span>
+            <span className="header-avatar">T</span>
+          </div>
+        </header>
+        {/* Main Section */}
+        <section className="dashboard-section">
+          {renderSectionContent()}
+        </section>
+      </div>
+    </div>
+  );
+};
+
+// Modal component for pop-ups
+const Modal = ({ isOpen, onClose, children }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <button className="modal-close" onClick={onClose}>&times;</button>
+        {children}
       </div>
     </div>
   );
