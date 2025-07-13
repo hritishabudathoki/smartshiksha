@@ -123,7 +123,7 @@ const TeacherDashboard = () => {
     if (section === 'reports') {
       return (
         <div className="crud-table-card">
-          <h2>Reports</h2>
+          <h2 className="table-title">Reports</h2>
           <Modal isOpen={showReportModal} onClose={() => setShowReportModal(false)}>
             <div className="crud-form">
               <h3>Add New Report</h3>
@@ -135,9 +135,10 @@ const TeacherDashboard = () => {
               </button>
             </div>
           </Modal>
-          <table className="crud-table">
+          <table className="crud-table styled-table">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Title</th>
                 <th>Student</th>
                 <th>Status</th>
@@ -145,8 +146,9 @@ const TeacherDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {reports.map((report) => (
+              {reports.map((report, idx) => (
                 <tr key={report.id}>
+                  <td>{idx + 1}</td>
                   <td>{reportEditId === report.id ? (
                     <input type="text" name="title" value={reportForm.title} onChange={handleReportChange} />
                   ) : report.title}</td>
@@ -165,8 +167,8 @@ const TeacherDashboard = () => {
                       <button className="save-btn" onClick={handleReportSave}>Save</button>
                     ) : (
                       <>
-                        <button className="edit-btn" onClick={() => handleReportEdit(report)}>Edit</button>
-                        <button className="delete-btn" onClick={() => handleReportDelete(report.id)}>Delete</button>
+                        <button className="edit-btn styled-edit" onClick={() => handleReportEdit(report)}>Edit</button>
+                        <button className="delete-btn styled-delete" onClick={() => handleReportDelete(report.id)}>Delete</button>
                       </>
                     )}
                   </td>
@@ -175,7 +177,7 @@ const TeacherDashboard = () => {
             </tbody>
           </table>
           <button className="add-btn" onClick={() => setShowReportModal(true)}>
-            <span className="add-icon">➕</span>Add Report
+            Add Report
           </button>
         </div>
       );
@@ -183,7 +185,7 @@ const TeacherDashboard = () => {
     if (section === 'attendance') {
       return (
         <div className="crud-table-card">
-          <h2>Attendance</h2>
+          <h2 className="table-title">Attendance</h2>
           <Modal isOpen={showAttendanceModal} onClose={() => setShowAttendanceModal(false)}>
             <div className="crud-form">
               <h3>Add New Attendance Record</h3>
@@ -195,9 +197,10 @@ const TeacherDashboard = () => {
               </button>
             </div>
           </Modal>
-          <table className="crud-table">
+          <table className="crud-table styled-table">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Student</th>
                 <th>Date</th>
                 <th>Status</th>
@@ -205,8 +208,9 @@ const TeacherDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {attendance.map((a) => (
+              {attendance.map((a, idx) => (
                 <tr key={a.id}>
+                  <td>{idx + 1}</td>
                   <td>{attendanceEditId === a.id ? (
                     <input type="text" name="student" value={attendanceForm.student} onChange={handleAttendanceChange} />
                   ) : a.student}</td>
@@ -216,7 +220,7 @@ const TeacherDashboard = () => {
                   <td>{attendanceEditId === a.id ? (
                     <input type="text" name="status" value={attendanceForm.status} onChange={handleAttendanceChange} />
                   ) : (
-                    <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-active' : 'status-inactive'}`}>
+                    <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-present' : a.status.toLowerCase() === 'absent' ? 'status-absent' : 'status-late'}`}>
                       {a.status}
                     </span>
                   )}</td>
@@ -225,8 +229,8 @@ const TeacherDashboard = () => {
                       <button className="save-btn" onClick={handleAttendanceSave}>Save</button>
                     ) : (
                       <>
-                        <button className="edit-btn" onClick={() => handleAttendanceEdit(a)}>Edit</button>
-                        <button className="delete-btn" onClick={() => handleAttendanceDelete(a.id)}>Delete</button>
+                        <button className="edit-btn styled-edit" onClick={() => handleAttendanceEdit(a)}>Edit</button>
+                        <button className="delete-btn styled-delete" onClick={() => handleAttendanceDelete(a.id)}>Delete</button>
                       </>
                     )}
                   </td>
@@ -235,7 +239,7 @@ const TeacherDashboard = () => {
             </tbody>
           </table>
           <button className="add-btn" onClick={() => setShowAttendanceModal(true)}>
-            <span className="add-icon">➕</span>Add Attendance
+            Add Attendance
           </button>
         </div>
       );
@@ -243,10 +247,11 @@ const TeacherDashboard = () => {
     if (section === 'notifications') {
       return (
         <div className="crud-table-card">
-          <h2>Notifications</h2>
-          <table className="crud-table">
+          <h2 className="table-title">Notifications</h2>
+          <table className="crud-table styled-table">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Title</th>
                 <th>Message</th>
                 <th>Date</th>
@@ -254,8 +259,9 @@ const TeacherDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {notifications.map((notification) => (
+              {notifications.map((notification, idx) => (
                 <tr key={notification.id}>
+                  <td>{idx + 1}</td>
                   <td>{notification.title}</td>
                   <td>{notification.message}</td>
                   <td>{notification.date}</td>
@@ -276,7 +282,7 @@ const TeacherDashboard = () => {
         // CRUD table for admin
         return (
           <div className="crud-table-card">
-            <h2>Students</h2>
+            <h2 className="table-title">Students</h2>
             <Modal isOpen={showStudentModal} onClose={() => setShowStudentModal(false)}>
               <div className="crud-form">
                 <h3>Add New Student</h3>
@@ -288,9 +294,10 @@ const TeacherDashboard = () => {
                 </button>
               </div>
             </Modal>
-            <table className="crud-table">
+            <table className="crud-table styled-table">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Class</th>
@@ -298,8 +305,9 @@ const TeacherDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {students.map((student) => (
+                {students.map((student, idx) => (
                   <tr key={student.id}>
+                    <td>{idx + 1}</td>
                     <td>{studentEditId === student.id ? (
                       <input type="text" name="name" value={studentForm.name} onChange={e => setStudentForm({ ...studentForm, name: e.target.value })} />
                     ) : student.name}</td>
@@ -318,8 +326,8 @@ const TeacherDashboard = () => {
                         }}>Save</button>
                       ) : (
                         <>
-                          <button className="edit-btn" onClick={() => { setStudentEditId(student.id); setStudentForm({ name: student.name, email: student.email, class: student.class }); }}>Edit</button>
-                          <button className="delete-btn" onClick={() => handleStudentDelete(student.id)}>Delete</button>
+                          <button className="edit-btn styled-edit" onClick={() => { setStudentEditId(student.id); setStudentForm({ name: student.name, email: student.email, class: student.class }); }}>Edit</button>
+                          <button className="delete-btn styled-delete" onClick={() => handleStudentDelete(student.id)}>Delete</button>
                         </>
                       )}
                     </td>
@@ -328,7 +336,7 @@ const TeacherDashboard = () => {
               </tbody>
             </table>
             <button className="add-btn" onClick={() => setShowStudentModal(true)}>
-              <span className="add-icon">➕</span>Add Student
+              Add Student
             </button>
           </div>
         );
@@ -336,18 +344,20 @@ const TeacherDashboard = () => {
         // View-only table for teacher
         return (
           <div className="crud-table-card">
-            <h2>Students</h2>
-            <table className="crud-table">
+            <h2 className="table-title">Students</h2>
+            <table className="crud-table styled-table">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Class</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((student) => (
+                {students.map((student, idx) => (
                   <tr key={student.id}>
+                    <td>{idx + 1}</td>
                     <td>{student.name}</td>
                     <td>{student.email}</td>
                     <td>{student.class}</td>
