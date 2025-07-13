@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import logoIcon from '../assets/wow.png';
@@ -117,6 +118,37 @@ const TeacherDashboard = () => {
               </div>
             </div>
           </div>
+          
+          {/* Features Section */}
+          <div className="features-section">
+            <h2 style={{ textAlign: 'center', margin: '40px 0 20px' }}>Features</h2>
+            <div className="features-grid">
+              <div className="feature-card">
+                <h3>Student Management</h3>
+                <p>Efficiently manage student records, attendance, and academic progress with comprehensive tracking tools.</p>
+              </div>
+              <div className="feature-card">
+                <h3>Attendance Tracking</h3>
+                <p>Automated attendance system with real-time monitoring and detailed reports for better student engagement.</p>
+              </div>
+              <div className="feature-card">
+                <h3>Report Generation</h3>
+                <p>Generate detailed academic reports, progress cards, and performance analytics for informed decision making.</p>
+              </div>
+              <div className="feature-card">
+                <h3>Notification System</h3>
+                <p>Instant notifications for important updates, exam schedules, and fee reminders to keep everyone informed.</p>
+              </div>
+              <div className="feature-card">
+                <h3>Fee Management</h3>
+                <p>Streamlined fee collection, payment tracking, and financial reporting for better financial management.</p>
+              </div>
+              <div className="feature-card">
+                <h3>Learning Materials</h3>
+                <p>Access to digital learning resources, study materials, and educational content for enhanced learning experience.</p>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }
@@ -138,7 +170,6 @@ const TeacherDashboard = () => {
           <table className="crud-table styled-table">
             <thead>
               <tr>
-                <th>#</th>
                 <th>Title</th>
                 <th>Student</th>
                 <th>Status</th>
@@ -146,9 +177,8 @@ const TeacherDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {reports.map((report, idx) => (
+              {reports.map((report) => (
                 <tr key={report.id}>
-                  <td>{idx + 1}</td>
                   <td>{reportEditId === report.id ? (
                     <input type="text" name="title" value={reportForm.title} onChange={handleReportChange} />
                   ) : report.title}</td>
@@ -200,7 +230,6 @@ const TeacherDashboard = () => {
           <table className="crud-table styled-table">
             <thead>
               <tr>
-                <th>#</th>
                 <th>Student</th>
                 <th>Date</th>
                 <th>Status</th>
@@ -208,9 +237,8 @@ const TeacherDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {attendance.map((a, idx) => (
+              {attendance.map((a) => (
                 <tr key={a.id}>
-                  <td>{idx + 1}</td>
                   <td>{attendanceEditId === a.id ? (
                     <input type="text" name="student" value={attendanceForm.student} onChange={handleAttendanceChange} />
                   ) : a.student}</td>
@@ -220,7 +248,7 @@ const TeacherDashboard = () => {
                   <td>{attendanceEditId === a.id ? (
                     <input type="text" name="status" value={attendanceForm.status} onChange={handleAttendanceChange} />
                   ) : (
-                    <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-present' : a.status.toLowerCase() === 'absent' ? 'status-absent' : 'status-late'}`}>
+                    <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-active' : 'status-inactive'}`}>
                       {a.status}
                     </span>
                   )}</td>
@@ -251,7 +279,6 @@ const TeacherDashboard = () => {
           <table className="crud-table styled-table">
             <thead>
               <tr>
-                <th>#</th>
                 <th>Title</th>
                 <th>Message</th>
                 <th>Date</th>
@@ -259,9 +286,8 @@ const TeacherDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {notifications.map((notification, idx) => (
+              {notifications.map((notification) => (
                 <tr key={notification.id}>
-                  <td>{idx + 1}</td>
                   <td>{notification.title}</td>
                   <td>{notification.message}</td>
                   <td>{notification.date}</td>
@@ -297,7 +323,6 @@ const TeacherDashboard = () => {
             <table className="crud-table styled-table">
               <thead>
                 <tr>
-                  <th>#</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Class</th>
@@ -305,9 +330,8 @@ const TeacherDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {students.map((student, idx) => (
+                {students.map((student) => (
                   <tr key={student.id}>
-                    <td>{idx + 1}</td>
                     <td>{studentEditId === student.id ? (
                       <input type="text" name="name" value={studentForm.name} onChange={e => setStudentForm({ ...studentForm, name: e.target.value })} />
                     ) : student.name}</td>
@@ -348,16 +372,14 @@ const TeacherDashboard = () => {
             <table className="crud-table styled-table">
               <thead>
                 <tr>
-                  <th>#</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Class</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((student, idx) => (
+                {students.map((student) => (
                   <tr key={student.id}>
-                    <td>{idx + 1}</td>
                     <td>{student.name}</td>
                     <td>{student.email}</td>
                     <td>{student.class}</td>
