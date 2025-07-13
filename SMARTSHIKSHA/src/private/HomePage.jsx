@@ -42,30 +42,11 @@ const HomePage = () => {
       {/* Footer */}
       <footer className="footer">
         <div className="footer-container">
-          <div className="footer-content">
-            <div className="footer-section">
-              <h4>About SMART SHIKSHA</h4>
-              <p>Empowering education through innovative learning management solutions for students, teachers, and administrators.</p>
-            </div>
-            
-            <div className="footer-section">
-              <h4>Quick Links</h4>
-              <ul>
-                <li><Link to="/login">Login</Link></li>
-                <li><Link to="/signup">Sign Up</Link></li>
-              </ul>
-            </div>
-            
-            <div className="footer-section">
-              <h4>Contact Us</h4>
-              <p>📞 9818505045</p>
-              <p>📧 smartshiksha@example.com</p>
-              <p>🏢 Baneshwor, Kathmandu</p>
-            </div>
-          </div>
-          
-          <div className="footer-bottom">
-            <p>&copy; 2024 SMART SHIKSHA. All rights reserved.</p>
+          <div className="footer-item">
+            <h4>Contact Us</h4>
+            <p>📞 9818505045</p>
+            <p>📧 smartshiksha@example.com</p>
+            <p>🏢 Baneshwor</p>
           </div>
         </div>
       </footer>
