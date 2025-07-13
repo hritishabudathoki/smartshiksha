@@ -1,33 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/Signup.css';
+import '../styles/Login.css';
 import loginImage from '../assets/read.png';
 import logoIcon from '../assets/wow.png';
 
-const Signup = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    address: '',
-    phone: '',
-    school: '',
-  });
-
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('');
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Normally you would send data to your backend here
-    console.log('Signup data:', formData);
+    if (!role) {
+      alert('Please select a role before continuing.');
+      return;
+    }
 
-    alert('Signup successful!');
-    navigate('/login'); // Redirect back to login
+    navigate(`/dashboard/${role.toLowerCase()}`);
   };
 
   return (
@@ -36,7 +27,7 @@ const Signup = () => {
 
         {/* Left Side Image */}
         <div className="login-image">
-          <img src={loginImage} alt="Signup Visual" />
+          <img src={loginImage} alt="Login Visual" />
         </div>
 
         {/* Right Side Card */}
@@ -47,20 +38,19 @@ const Signup = () => {
           </h1>
 
           <div className="login-header">
-            <h2>CREATE ACCOUNT</h2>
-            <p>Please fill in your details</p>
+            <h2>WELCOME BACK</h2>
+            <p>Please enter your details</p>
           </div>
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
-              <label htmlFor="username">Username</label>
+              <label htmlFor="email">Email address</label>
               <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Enter your username"
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -70,58 +60,35 @@ const Signup = () => {
               <input
                 type="password"
                 id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="address">Address</label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Enter your address"
+              <label htmlFor="role">Login as</label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
                 required
-              />
+              >
+                <option value="">Select Role</option>
+                <option value="Admin">Admin</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Student">Student</option>
+              </select>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="phone">Phone Number</label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="Enter your phone number"
-                required
-              />
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="school">School</label>
-              <input
-                type="text"
-                id="school"
-                name="school"
-                value={formData.school}
-                onChange={handleChange}
-                placeholder="Enter your school"
-                required
-              />
-            </div>
 
-            <button type="submit" className="signin-button">Sign Up</button>
+            <button type="submit" className="signin-button">Sign in</button>
           </form>
 
           <div className="signup-link">
-            Already have an account? <a href="/login">Login</a>
+            Don't have an account? <a href="/signup">Signup</a>
           </div>
         </div>
       </div>
@@ -129,4 +96,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Login;
