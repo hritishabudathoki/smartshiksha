@@ -207,7 +207,7 @@ const TeacherDashboard = () => {
             </tbody>
           </table>
           <button className="add-btn" onClick={() => setShowReportModal(true)}>
-            Add Report
+            <span className="add-icon">➕</span>Add Report
           </button>
         </div>
       );
@@ -267,7 +267,7 @@ const TeacherDashboard = () => {
             </tbody>
           </table>
           <button className="add-btn" onClick={() => setShowAttendanceModal(true)}>
-            Add Attendance
+            <span className="add-icon">➕</span>Add Attendance
           </button>
         </div>
       );
@@ -360,7 +360,7 @@ const TeacherDashboard = () => {
               </tbody>
             </table>
             <button className="add-btn" onClick={() => setShowStudentModal(true)}>
-              Add Student
+              <span className="add-icon">➕</span>Add Student
             </button>
           </div>
         );
