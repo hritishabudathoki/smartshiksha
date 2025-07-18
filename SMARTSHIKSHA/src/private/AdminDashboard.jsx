@@ -1,188 +1,330 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import Sidebar from '../components/Sidebar';
 import logoIcon from '../assets/wow.png';
 import '../styles/AdminDashboard.css';
-import { FaUserGraduate, FaChalkboardTeacher, FaBook, FaMoneyBillWave, FaBell } from 'react-icons/fa';
-import defaultAvatar from '../assets/ok.png';
+import {
+  fetchStudents,
+  addStudent,
+  updateStudent,
+  deleteStudent
+} from "../services/studentApi";
+import {
+  fetchRoutines,
+  addRoutine,
+  updateRoutine,
+  deleteRoutine
+} from "../services/routineApi";
+import {
+  fetchLearningMaterials,
+  addLearningMaterial,
+  updateLearningMaterial,
+  deleteLearningMaterial
+} from "../services/learningMaterialApi";
+import {
+  fetchFees,
+  addFee,
+  updateFee,
+  deleteFee
+} from "../services/feeApi";
+import {
+  fetchNotifications,
+  addNotification,
+  updateNotification,
+  deleteNotification
+} from "../services/notificationApi";
+import { FaEdit, FaTrash, FaUserGraduate, FaClipboardCheck, FaChartBar, FaBell, FaMoneyBillWave, FaBook } from 'react-icons/fa';
 
-const initialStudents = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', class: '10A' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', class: '10B' },
-];
-const initialClasses = [
-  { id: 1, name: 'Mathematics', teacher: 'Mr. Smith', schedule: 'Mon 10:00' },
-  { id: 2, name: 'Science', teacher: 'Ms. Johnson', schedule: 'Wed 12:00' },
-];
-const initialRoutine = [
-  { id: 1, day: 'Monday', class: 'Mathematics', time: '10:00' },
-  { id: 2, day: 'Wednesday', class: 'Science', time: '12:00' },
-];
-const initialLearning = [
-  { id: 1, title: 'Algebra Basics', type: 'PDF', link: 'algebra.pdf' },
-  { id: 2, title: 'Photosynthesis', type: 'Video', link: 'photosynthesis.mp4' },
-];
-const initialFees = [
-  { id: 1, student: 'John Doe', amount: 5000, status: 'Paid' },
-  { id: 2, student: 'Jane Smith', amount: 5000, status: 'Unpaid' },
-];
-const initialNotifications = [
-  { id: 1, title: 'Exam Schedule Update', message: 'Mathematics exam rescheduled to Friday', date: '2024-01-15', priority: 'High' },
-  { id: 2, title: 'Fee Due Reminder', message: 'Please pay your fees before month end', date: '2024-01-20', priority: 'Medium' },
-];
-
-const SECTION_LABELS = {
-  students: 'Manage Students',
-  classes: 'Manage Classes',
-  routine: 'Manage Routine',
-  learning: 'Manage Learning Materials',
-  fees: 'Manage Fees',
-  notifications: 'Manage Notifications',
-};
-
-// Modal component for pop-ups
-const Modal = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="modal-close" onClick={onClose}>&times;</button>
-        {children}
-      </div>
-    </div>
-  );
-};
-
-const AdminDashboard = () => {
+export default function AdminDashboard() {
   const [section, setSection] = useState('home');
-
-  // Students CRUD
-  const [students, setStudents] = useState(initialStudents);
-  const [studentEditId, setStudentEditId] = useState(null);
-  const [studentForm, setStudentForm] = useState({ name: '', email: '', class: '' });
-  // Add modal state for each section
-  const [showStudentModal, setShowStudentModal] = useState(false);
-
-  // Classes CRUD
-  const [classes, setClasses] = useState(initialClasses);
-  const [classEditId, setClassEditId] = useState(null);
-  const [classForm, setClassForm] = useState({ name: '', teacher: '', schedule: '' });
-  // Add modal state for each section
-  const [showClassModal, setShowClassModal] = useState(false);
-
-  // Routine CRUD
-  const [routine, setRoutine] = useState(initialRoutine);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ fullName: "", email: "", class: "" });
+  const [editId, setEditId] = useState(null);
+  const [routines, setRoutines] = useState([]);
+  const [routineLoading, setRoutineLoading] = useState(true);
+  const [routineForm, setRoutineForm] = useState({ day: "", class: "", time: "" });
   const [routineEditId, setRoutineEditId] = useState(null);
-  const [routineForm, setRoutineForm] = useState({ day: '', class: '', time: '' });
-  // Add modal state for each section
-  const [showRoutineModal, setShowRoutineModal] = useState(false);
-
-  // Learning Materials CRUD
-  const [learning, setLearning] = useState(initialLearning);
+  const [learningMaterials, setLearningMaterials] = useState([]);
+  const [learningLoading, setLearningLoading] = useState(true);
+  const [learningForm, setLearningForm] = useState({ title: "", type: "", link: "" });
   const [learningEditId, setLearningEditId] = useState(null);
-  const [learningForm, setLearningForm] = useState({ title: '', type: '', link: '' });
-  // Add modal state for each section
-  const [showLearningModal, setShowLearningModal] = useState(false);
-
-  // Fees CRUD
-  const [fees, setFees] = useState(initialFees);
+  const [fees, setFees] = useState([]);
+  const [feeLoading, setFeeLoading] = useState(true);
+  const [feeForm, setFeeForm] = useState({ studentName: "", amount: "", status: "" });
   const [feeEditId, setFeeEditId] = useState(null);
-  const [feeForm, setFeeForm] = useState({ student: '', amount: '', status: '' });
-  // Add modal state for each section
-  const [showFeeModal, setShowFeeModal] = useState(false);
-
-  // Notifications CRUD
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationLoading, setNotificationLoading] = useState(true);
+  const [notificationForm, setNotificationForm] = useState({ title: "", message: "", date: "", priority: "" });
   const [notificationEditId, setNotificationEditId] = useState(null);
-  const [notificationForm, setNotificationForm] = useState({ title: '', message: '', date: '', priority: '' });
-  // Add modal state for each section
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [showEditStudentModal, setShowEditStudentModal] = useState(false);
+  const [showAddRoutineModal, setShowAddRoutineModal] = useState(false);
+  const [showEditRoutineModal, setShowEditRoutineModal] = useState(false);
+  const [showAddFeeModal, setShowAddFeeModal] = useState(false);
+  const [showEditFeeModal, setShowEditFeeModal] = useState(false);
+  const [showAddNotificationModal, setShowAddNotificationModal] = useState(false);
+  const [showEditNotificationModal, setShowEditNotificationModal] = useState(false);
+  const [showAddLearningModal, setShowAddLearningModal] = useState(false);
+  const [showEditLearningModal, setShowEditLearningModal] = useState(false);
 
-  // --- Handlers for each CRUD table ---
-  // Students
-  const handleStudentEdit = (s) => { setStudentEditId(s.id); setStudentForm({ name: s.name, email: s.email, class: s.class }); };
-  const handleStudentDelete = (id) => setStudents(students.filter((s) => s.id !== id));
-  const handleStudentChange = (e) => setStudentForm({ ...studentForm, [e.target.name]: e.target.value });
-  const handleStudentSave = () => { setStudents(students.map((s) => (s.id === studentEditId ? { ...s, ...studentForm } : s))); setStudentEditId(null); setStudentForm({ name: '', email: '', class: '' }); };
-  const handleStudentAdd = () => { setStudents([...students, { id: Date.now(), ...studentForm }]); setStudentForm({ name: '', email: '', class: '' }); };
+  useEffect(() => {
+    if (section === 'students') {
+      loadStudents();
+    }
+    if (section === 'routine') {
+      loadRoutines();
+    }
+    if (section === 'learning') {
+      loadLearningMaterials();
+    }
+    if (section === 'fees') {
+      loadFees();
+    }
+    if (section === 'notifications') {
+      loadNotifications();
+    }
+  }, [section]);
 
-  // Classes
-  const handleClassEdit = (c) => { setClassEditId(c.id); setClassForm({ name: c.name, teacher: c.teacher, schedule: c.schedule }); };
-  const handleClassDelete = (id) => setClasses(classes.filter((c) => c.id !== id));
-  const handleClassChange = (e) => setClassForm({ ...classForm, [e.target.name]: e.target.value });
-  const handleClassSave = () => { setClasses(classes.map((c) => (c.id === classEditId ? { ...c, ...classForm } : c))); setClassEditId(null); setClassForm({ name: '', teacher: '', schedule: '' }); };
-  const handleClassAdd = () => { setClasses([...classes, { id: Date.now(), ...classForm }]); setClassForm({ name: '', teacher: '', schedule: '' }); };
+  async function loadStudents() {
+    setLoading(true);
+    try {
+      const data = await fetchStudents();
+      setStudents(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setLoading(false);
+  }
 
-  // Routine
-  const handleRoutineEdit = (r) => { setRoutineEditId(r.id); setRoutineForm({ day: r.day, class: r.class, time: r.time }); };
-  const handleRoutineDelete = (id) => setRoutine(routine.filter((r) => r.id !== id));
-  const handleRoutineChange = (e) => setRoutineForm({ ...routineForm, [e.target.name]: e.target.value });
-  const handleRoutineSave = () => { setRoutine(routine.map((r) => (r.id === routineEditId ? { ...r, ...routineForm } : r))); setRoutineEditId(null); setRoutineForm({ day: '', class: '', time: '' }); };
-  const handleRoutineAdd = () => { setRoutine([...routine, { id: Date.now(), ...routineForm }]); setRoutineForm({ day: '', class: '', time: '' }); };
+  async function handleAdd() {
+    try {
+      await addStudent(form);
+      setForm({ fullName: "", email: "", class: "" });
+      loadStudents();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
 
-  // Learning
-  const handleLearningEdit = (l) => { setLearningEditId(l.id); setLearningForm({ title: l.title, type: l.type, link: l.link }); };
-  const handleLearningDelete = (id) => setLearning(learning.filter((l) => l.id !== id));
-  const handleLearningChange = (e) => setLearningForm({ ...learningForm, [e.target.name]: e.target.value });
-  const handleLearningSave = () => { setLearning(learning.map((l) => (l.id === learningEditId ? { ...l, ...learningForm } : l))); setLearningEditId(null); setLearningForm({ title: '', type: '', link: '' }); };
-  const handleLearningAdd = () => { setLearning([...learning, { id: Date.now(), ...learningForm }]); setLearningForm({ title: '', type: '', link: '' }); };
+  async function handleEdit(id) {
+    try {
+      await updateStudent(id, form);
+      setEditId(null);
+      setForm({ fullName: "", email: "", class: "" });
+      loadStudents();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
 
-  // Fees
-  const handleFeeEdit = (f) => { setFeeEditId(f.id); setFeeForm({ student: f.student, amount: f.amount, status: f.status }); };
-  const handleFeeDelete = (id) => setFees(fees.filter((f) => f.id !== id));
-  const handleFeeChange = (e) => setFeeForm({ ...feeForm, [e.target.name]: e.target.value });
-  const handleFeeSave = () => {
-    setFees(fees.map((f) => (f.id === feeEditId ? { ...f, ...feeForm, amount: parseInt(feeForm.amount, 10) } : f)));
+  async function handleDelete(id) {
+    if (!window.confirm("Delete this student?")) return;
+    try {
+      await deleteStudent(id);
+      loadStudents();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function loadRoutines() {
+    setRoutineLoading(true);
+    try {
+      const data = await fetchRoutines();
+      setRoutines(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setRoutineLoading(false);
+  }
+
+  async function handleRoutineAdd() {
+    try {
+      await addRoutine(routineForm);
+      setRoutineForm({ day: "", class: "", time: "" });
+      loadRoutines();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleRoutineEdit(id) {
+    try {
+      await updateRoutine(id, routineForm);
+      setRoutineEditId(null);
+      setRoutineForm({ day: "", class: "", time: "" });
+      loadRoutines();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleRoutineDelete(id) {
+    if (!window.confirm("Delete this routine?")) return;
+    try {
+      await deleteRoutine(id);
+      loadRoutines();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function loadLearningMaterials() {
+    setLearningLoading(true);
+    try {
+      const data = await fetchLearningMaterials();
+      setLearningMaterials(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setLearningLoading(false);
+  }
+
+  async function handleLearningAdd() {
+    try {
+      await addLearningMaterial(learningForm);
+      setLearningForm({ title: "", type: "", link: "" });
+      loadLearningMaterials();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleLearningEdit(id) {
+    try {
+      await updateLearningMaterial(id, learningForm);
+      setLearningEditId(null);
+      setLearningForm({ title: "", type: "", link: "" });
+      loadLearningMaterials();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleLearningDelete(id) {
+    if (!window.confirm("Delete this material?")) return;
+    try {
+      await deleteLearningMaterial(id);
+      loadLearningMaterials();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function loadFees() {
+    setFeeLoading(true);
+    try {
+      const data = await fetchFees();
+      setFees(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setFeeLoading(false);
+  }
+
+  async function handleFeeAdd() {
+    try {
+      await addFee({ ...feeForm, amount: parseInt(feeForm.amount, 10) });
+      setFeeForm({ studentName: "", amount: "", status: "" });
+      loadFees();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleFeeEdit(id) {
+    try {
+      await updateFee(id, { ...feeForm, amount: parseInt(feeForm.amount, 10) });
     setFeeEditId(null);
-    setFeeForm({ student: '', amount: '', status: '' });
-  };
-  const handleFeeAdd = () => {
-    setFees([...fees, { id: Date.now(), ...feeForm, amount: parseInt(feeForm.amount, 10) }]);
-    setFeeForm({ student: '', amount: '', status: '' });
-  };
+      setFeeForm({ studentName: "", amount: "", status: "" });
+      loadFees();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
 
-  // Notifications
-  const handleNotificationEdit = (n) => { setNotificationEditId(n.id); setNotificationForm({ title: n.title, message: n.message, date: n.date, priority: n.priority }); };
-  const handleNotificationDelete = (id) => setNotifications(notifications.filter((n) => n.id !== id));
-  const handleNotificationChange = (e) => setNotificationForm({ ...notificationForm, [e.target.name]: e.target.value });
-  const handleNotificationSave = () => { setNotifications(notifications.map((n) => (n.id === notificationEditId ? { ...n, ...notificationForm } : n))); setNotificationEditId(null); setNotificationForm({ title: '', message: '', date: '', priority: '' }); };
-  const handleNotificationAdd = () => { setNotifications([...notifications, { id: Date.now(), ...notificationForm }]); setNotificationForm({ title: '', message: '', date: '', priority: '' }); };
+  async function handleFeeDelete(id) {
+    if (!window.confirm("Delete this fee?")) return;
+    try {
+      await deleteFee(id);
+      loadFees();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
 
-  // --- Render Table for Active Section ---
+  async function loadNotifications() {
+    setNotificationLoading(true);
+    try {
+      const data = await fetchNotifications();
+      setNotifications(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setNotificationLoading(false);
+  }
+
+  async function handleNotificationAdd() {
+    try {
+      await addNotification(notificationForm);
+      setNotificationForm({ title: "", message: "", date: "", priority: "" });
+      loadNotifications();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleNotificationEdit(id) {
+    try {
+      await updateNotification(id, notificationForm);
+      setNotificationEditId(null);
+      setNotificationForm({ title: "", message: "", date: "", priority: "" });
+      loadNotifications();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleNotificationDelete(id) {
+    if (!window.confirm("Delete this notification?")) return;
+    try {
+      await deleteNotification(id);
+      loadNotifications();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
   function renderSectionContent() {
     if (section === 'home') {
       return (
         <div className="dashboard-overview">
-          <h2 style={{ fontWeight: 'bold' }}>Welcome, Admin!</h2>
+          <h2>Welcome, Admin!</h2>
           <div className="overview-cards">
             <div className="overview-card">
-              <span className="overview-icon"><FaUserGraduate /></span>
+              <img src={require('../assets/std.png')} alt="Total Students" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Total Students</h3>
               <p>{students.length}</p>
             </div>
             <div className="overview-card">
-              <span className="overview-icon"><FaChalkboardTeacher /></span>
-              <h3>Total Classes</h3>
-              <p>{classes.length}</p>
+              <img src={require('../assets/tea.png')} alt="Classes" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <h3>Students</h3>
+              <p>{students.length}</p>
             </div>
             <div className="overview-card">
-              <span className="overview-icon"><FaBook /></span>
-              <h3>Learning Materials</h3>
-              <p>{learning.length}</p>
+              <img src={require('../assets/fee.png')} alt="Fees" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <h3>Fees</h3>
+              <p>{fees.length}</p>
             </div>
             <div className="overview-card">
-              <span className="overview-icon"><FaMoneyBillWave /></span>
-              <h3>Unpaid Fees</h3>
-              <p>{fees.filter(f => f.status.toLowerCase() !== 'paid').length}</p>
-            </div>
-            <div className="overview-card">
-              <span className="overview-icon"><FaBell /></span>
-              <h3>Active Notifications</h3>
+              <img src={require('../assets/noti.png')} alt="Notifications" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <h3>Notifications</h3>
               <p>{notifications.length}</p>
             </div>
           </div>
           {/* Why SMART SHIKSHA Section */}
           <div className="why-smart-shiksha-section">
-            <h2 style={{ textAlign: 'center', margin: '40px 0 20px', fontWeight: 'bold' }}>Why SMART SHIKSHA?</h2>
+            <h2 style={{ textAlign: 'center', margin: '40px 0 20px' }}>Why SMART SHIKSHA?</h2>
             <div className="why-features-grid">
               <div className="why-feature-card">
                 <span role="img" aria-label="web" className="why-feature-icon">🌐</span>
@@ -200,35 +342,60 @@ const AdminDashboard = () => {
                 <span role="img" aria-label="user" className="why-feature-icon">👤</span>
                 <div className="why-feature-title">User Friendly</div>
               </div>
-              <div className="why-feature-card">
-                <span role="img" aria-label="support" className="why-feature-icon">🧑‍💻</span>
-                <div className="why-feature-title">24x7 support</div>
               </div>
-              <div className="why-feature-card">
-                <span role="img" aria-label="automation" className="why-feature-icon">⚙️</span>
-                <div className="why-feature-title">Automations</div>
+              </div>
+          <div className="features-section">
+            <h2 className="features-title">Our Features</h2>
+            <div className="features-underline"></div>
+            <div className="features-grid">
+              <div className="feature-card">
+                <div className="feature-img-banner">
+                  <img src={require('../assets/one.png')} alt="Learning Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Learning Management System</div>
+                  <div className="feature-desc">The LMS feature revolutionizes the teaching experience, enabling educators to effortlessly create, manage, and deliver online courses while closely monitoring student progress, making online education engaging and effective.</div>
+                </div>
+              </div>
+              <div className="feature-card">
+                <div className="feature-img-banner">
+                  <img src={require('../assets/two.png')} alt="School Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">School Management System</div>
+                  <div className="feature-desc">The School Management System streamlines administrative tasks for schools, offering a centralized platform to efficiently manage student records, attendance, timetables, and financial matters.</div>
+                </div>
+              </div>
+              <div className="feature-card">
+                <div className="feature-img-banner">
+                  <img src={require('../assets/three.png')} alt="Accounting Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Accounting Management System</div>
+                  <div className="feature-desc">Comprehensive Accounting simplifies financial management for educational institutions, offering tools for tracking budgets, expenses, and revenue, ensuring transparent and efficient financial operations.</div>
+                </div>
+              </div>
+              <div className="feature-card">
+                <div className="feature-img-banner">
+                  <img src={require('../assets/four.png')} alt="Notification System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Notification System</div>
+                  <div className="feature-desc">Instant notifications for important updates and reminders, keeping everyone informed and engaged.</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       );
     }
-    switch (section) {
-      case 'students':
+    if (section === 'students') {
         return (
           <div className="crud-table-card">
             <h2 className="table-title">Manage Students</h2>
-            <Modal isOpen={showStudentModal} onClose={() => setShowStudentModal(false)}>
-              <div className="crud-form">
-                <h3>Add New Student</h3>
-                <input type="text" name="name" placeholder="Name" value={studentForm.name} onChange={handleStudentChange} />
-                <input type="email" name="email" placeholder="Email" value={studentForm.email} onChange={handleStudentChange} />
-                <input type="text" name="class" placeholder="Class" value={studentForm.class} onChange={handleStudentChange} />
-                <button className="add-btn" onClick={() => { handleStudentAdd(); setShowStudentModal(false); }} disabled={!studentForm.name || !studentForm.email || !studentForm.class}>
-                  Add Student
-                </button>
-              </div>
-            </Modal>
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
             <table className="crud-table styled-table">
               <thead>
                 <tr>
@@ -240,109 +407,94 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {students.map((student, idx) => (
-                  <tr key={student.id}>
+                {students.map((s, idx) => (
+                  <tr key={s.id}>
                     <td>{idx + 1}</td>
-                    <td>{studentEditId === student.id ? (
-                      <input type="text" name="name" value={studentForm.name} onChange={handleStudentChange} />
-                    ) : student.name}</td>
-                    <td>{studentEditId === student.id ? (
-                      <input type="email" name="email" value={studentForm.email} onChange={handleStudentChange} />
-                    ) : student.email}</td>
-                    <td>{studentEditId === student.id ? (
-                      <input type="text" name="class" value={studentForm.class} onChange={handleStudentChange} />
-                    ) : student.class}</td>
+                    <td>{s.fullName}</td>
+                    <td>{s.email}</td>
+                    <td>{s.class}</td>
                     <td>
-                      {studentEditId === student.id ? (
-                        <button className="save-btn" onClick={handleStudentSave}>Save</button>
-                      ) : (
-                        <>
-                          <button className="edit-btn styled-edit" onClick={() => handleStudentEdit(student)}>Edit</button>
-                          <button className="delete-btn styled-delete" onClick={() => handleStudentDelete(student.id)}>Delete</button>
-                        </>
-                      )}
+                          <button
+                            onClick={() => {
+                              setEditId(s.id);
+                              setForm({
+                                fullName: s.fullName,
+                                email: s.email,
+                                class: s.class
+                              });
+                          setShowEditStudentModal(true);
+                            }}
+                        className="action-btn edit"
+                        title="Edit"
+                          >
+                        <FaEdit />
+                          </button>
+                      <button onClick={() => handleDelete(s.id)} className="action-btn delete" title="Delete">
+                        <FaTrash />
+                          </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <button className="add-btn" onClick={() => setShowStudentModal(true)}>
-              Add Student
-            </button>
-          </div>
-        );
-      case 'classes':
-        return (
-          <div className="crud-table-card">
-            <h2 className="table-title">Manage Classes</h2>
-            <Modal isOpen={showClassModal} onClose={() => setShowClassModal(false)}>
-              <div className="crud-form">
-                <h3>Add New Class</h3>
-                <input type="text" name="name" placeholder="Class Name" value={classForm.name} onChange={handleClassChange} />
-                <input type="text" name="teacher" placeholder="Teacher" value={classForm.teacher} onChange={handleClassChange} />
-                <input type="text" name="schedule" placeholder="Schedule" value={classForm.schedule} onChange={handleClassChange} />
-                <button className="add-btn" onClick={() => { handleClassAdd(); setShowClassModal(false); }} disabled={!classForm.name || !classForm.teacher || !classForm.schedule}>
-                  Add Class
-                </button>
+          )}
+          <button className="add-btn" onClick={() => setShowAddStudentModal(true)}>
+            <span className="add-icon">➕</span>Add Student
+          </button>
+          {/* Student Add Modal */}
+          <Modal isOpen={showAddStudentModal} onClose={() => setShowAddStudentModal(false)}>
+            <div className="modal-header">Add Student</div>
+            <div className="modal-body">
+              <div className="modal-form-row">
+                <label htmlFor="addStudentFullName">Full Name</label>
+                <input id="addStudentFullName" className="modal-input" placeholder="Full Name" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} />
               </div>
-            </Modal>
-            <table className="crud-table styled-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Class Name</th>
-                  <th>Teacher</th>
-                  <th>Schedule</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {classes.map((cls, idx) => (
-                  <tr key={cls.id}>
-                    <td>{idx + 1}</td>
-                    <td>{classEditId === cls.id ? (
-                      <input type="text" name="name" value={classForm.name} onChange={handleClassChange} />
-                    ) : cls.name}</td>
-                    <td>{classEditId === cls.id ? (
-                      <input type="text" name="teacher" value={classForm.teacher} onChange={handleClassChange} />
-                    ) : cls.teacher}</td>
-                    <td>{classEditId === cls.id ? (
-                      <input type="text" name="schedule" value={classForm.schedule} onChange={handleClassChange} />
-                    ) : cls.schedule}</td>
-                    <td>
-                      {classEditId === cls.id ? (
-                        <button className="save-btn" onClick={handleClassSave}>Save</button>
-                      ) : (
-                        <>
-                          <button className="edit-btn styled-edit" onClick={() => handleClassEdit(cls)}>Edit</button>
-                          <button className="delete-btn styled-delete" onClick={() => handleClassDelete(cls.id)}>Delete</button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button className="add-btn" onClick={() => setShowClassModal(true)}>
-              Add Class
-            </button>
+              <div className="modal-form-row">
+                <label htmlFor="addStudentEmail">Email</label>
+                <input id="addStudentEmail" className="modal-input" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" />
+                {!isValidEmail(form.email) && form.email && (<div style={{ color: 'red', fontSize: 13, marginBottom: 8 }}>Please enter a valid email address.</div>)}
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="addStudentClass">Class</label>
+                <input id="addStudentClass" className="modal-input" placeholder="Class" value={form.class} onChange={e => setForm({ ...form, class: e.target.value })} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="add-btn" onClick={() => { handleAdd(); setShowAddStudentModal(false); }} disabled={!form.fullName || !form.email || !form.class || !isValidEmail(form.email)}>Add Student</button>
+            </div>
+          </Modal>
+          {/* Student Edit Modal */}
+          <Modal isOpen={showEditStudentModal} onClose={() => { setShowEditStudentModal(false); setEditId(null); }}>
+            <div className="modal-header">Edit Student</div>
+            <div className="modal-body">
+              <div className="modal-form-row">
+                <label htmlFor="editStudentFullName">Full Name</label>
+                <input id="editStudentFullName" className="modal-input" placeholder="Full Name" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="editStudentEmail">Email</label>
+                <input id="editStudentEmail" className="modal-input" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" />
+                {!isValidEmail(form.email) && form.email && (<div style={{ color: 'red', fontSize: 13, marginBottom: 8 }}>Please enter a valid email address.</div>)}
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="editStudentClass">Class</label>
+                <input id="editStudentClass" className="modal-input" placeholder="Class" value={form.class} onChange={e => setForm({ ...form, class: e.target.value })} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="add-btn" onClick={() => { handleEdit(editId); setShowEditStudentModal(false); }} disabled={!form.fullName || !form.email || !form.class || !isValidEmail(form.email)}>Save</button>
+            </div>
+          </Modal>
           </div>
         );
-      case 'routine':
+    }
+    if (section === 'routine') {
         return (
           <div className="crud-table-card">
             <h2 className="table-title">Manage Routine</h2>
-            <Modal isOpen={showRoutineModal} onClose={() => setShowRoutineModal(false)}>
-              <div className="crud-form">
-                <h3>Add New Routine</h3>
-                <input type="text" name="day" placeholder="Day" value={routineForm.day} onChange={handleRoutineChange} />
-                <input type="text" name="class" placeholder="Class" value={routineForm.class} onChange={handleRoutineChange} />
-                <input type="text" name="time" placeholder="Time" value={routineForm.time} onChange={handleRoutineChange} />
-                <button className="add-btn" onClick={() => { handleRoutineAdd(); setShowRoutineModal(false); }} disabled={!routineForm.day || !routineForm.class || !routineForm.time}>
-                  Add Routine
-                </button>
-              </div>
-            </Modal>
+          {routineLoading ? (
+            <p>Loading...</p>
+          ) : (
             <table className="crud-table styled-table">
               <thead>
                 <tr>
@@ -354,52 +506,102 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {routine.map((r, idx) => (
+                {routines.map((r, idx) => (
                   <tr key={r.id}>
                     <td>{idx + 1}</td>
-                    <td>{routineEditId === r.id ? (
-                      <input type="text" name="day" value={routineForm.day} onChange={handleRoutineChange} />
-                    ) : r.day}</td>
-                    <td>{routineEditId === r.id ? (
-                      <input type="text" name="class" value={routineForm.class} onChange={handleRoutineChange} />
-                    ) : r.class}</td>
-                    <td>{routineEditId === r.id ? (
-                      <input type="text" name="time" value={routineForm.time} onChange={handleRoutineChange} />
-                    ) : r.time}</td>
+                    <td>{r.day}</td>
+                    <td>{r.class}</td>
+                    <td>{r.time}</td>
                     <td>
-                      {routineEditId === r.id ? (
-                        <button className="save-btn" onClick={handleRoutineSave}>Save</button>
-                      ) : (
-                        <>
-                          <button className="edit-btn styled-edit" onClick={() => handleRoutineEdit(r)}>Edit</button>
-                          <button className="delete-btn styled-delete" onClick={() => handleRoutineDelete(r.id)}>Delete</button>
-                        </>
-                      )}
+                          <button onClick={() => {
+                            setRoutineEditId(r.id);
+                            setRoutineForm({ day: r.day, class: r.class, time: r.time });
+                        setShowEditRoutineModal(true);
+                      }} className="action-btn edit" title="Edit">
+                        <FaEdit />
+                      </button>
+                      <button onClick={() => handleRoutineDelete(r.id)} className="action-btn delete" title="Delete">
+                        <FaTrash />
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <button className="add-btn" onClick={() => setShowRoutineModal(true)}>
-              Add Routine
-            </button>
+          )}
+          <button className="add-btn" onClick={() => setShowAddRoutineModal(true)}>
+            <span className="add-icon">➕</span>Add Routine
+          </button>
+          {/* Routine Add Modal */}
+          <Modal isOpen={showAddRoutineModal} onClose={() => setShowAddRoutineModal(false)}>
+            <div className="modal-header">Add Routine</div>
+            <div className="modal-body">
+              <div className="modal-form-row">
+                <label htmlFor="addRoutineDay">Day</label>
+                <select id="addRoutineDay" className="modal-input" value={routineForm.day} onChange={e => setRoutineForm({ ...routineForm, day: e.target.value })}>
+                  <option value="">Select Day</option>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                </select>
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="addRoutineClass">Class</label>
+                <input id="addRoutineClass" className="modal-input" placeholder="Class" value={routineForm.class} onChange={e => setRoutineForm({ ...routineForm, class: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="addRoutineTime">Time</label>
+                <input id="addRoutineTime" className="modal-input" type="time" value={routineForm.time} onChange={e => setRoutineForm({ ...routineForm, time: e.target.value })} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="add-btn" onClick={() => { handleRoutineAdd(); setShowAddRoutineModal(false); }} disabled={!routineForm.day || !routineForm.class || !routineForm.time}>Add Routine</button>
+            </div>
+          </Modal>
+          {/* Routine Edit Modal */}
+          <Modal isOpen={showEditRoutineModal} onClose={() => { setShowEditRoutineModal(false); setRoutineEditId(null); }}>
+            <div className="modal-header">Edit Routine</div>
+            <div className="modal-body">
+              <div className="modal-form-row">
+                <label htmlFor="editRoutineDay">Day</label>
+                <select id="editRoutineDay" className="modal-input" value={routineForm.day} onChange={e => setRoutineForm({ ...routineForm, day: e.target.value })}>
+                  <option value="">Select Day</option>
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                </select>
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="editRoutineClass">Class</label>
+                <input id="editRoutineClass" className="modal-input" placeholder="Class" value={routineForm.class} onChange={e => setRoutineForm({ ...routineForm, class: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="editRoutineTime">Time</label>
+                <input id="editRoutineTime" className="modal-input" type="time" value={routineForm.time} onChange={e => setRoutineForm({ ...routineForm, time: e.target.value })} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="add-btn" onClick={() => { handleRoutineEdit(routineEditId); setShowEditRoutineModal(false); }} disabled={!routineForm.day || !routineForm.class || !routineForm.time}>Save</button>
+            </div>
+          </Modal>
           </div>
         );
-      case 'learning':
+    }
+    if (section === 'learning') {
         return (
           <div className="crud-table-card">
             <h2 className="table-title">Manage Learning Materials</h2>
-            <Modal isOpen={showLearningModal} onClose={() => setShowLearningModal(false)}>
-              <div className="crud-form">
-                <h3>Add New Learning Material</h3>
-                <input type="text" name="title" placeholder="Title" value={learningForm.title} onChange={handleLearningChange} />
-                <input type="text" name="type" placeholder="Type (PDF/Video)" value={learningForm.type} onChange={handleLearningChange} />
-                <input type="text" name="link" placeholder="Link" value={learningForm.link} onChange={handleLearningChange} />
-                <button className="add-btn" onClick={() => { handleLearningAdd(); setShowLearningModal(false); }} disabled={!learningForm.title || !learningForm.type || !learningForm.link}>
-                  Add Material
-                </button>
-              </div>
-            </Modal>
+          {learningLoading ? (
+            <p>Loading...</p>
+          ) : (
             <table className="crud-table styled-table">
               <thead>
                 <tr>
@@ -411,52 +613,94 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {learning.map((l, idx) => (
+                {learningMaterials.map((l, idx) => (
                   <tr key={l.id}>
                     <td>{idx + 1}</td>
-                    <td>{learningEditId === l.id ? (
-                      <input type="text" name="title" value={learningForm.title} onChange={handleLearningChange} />
-                    ) : l.title}</td>
-                    <td>{learningEditId === l.id ? (
-                      <input type="text" name="type" value={learningForm.type} onChange={handleLearningChange} />
-                    ) : l.type}</td>
-                    <td>{learningEditId === l.id ? (
-                      <input type="text" name="link" value={learningForm.link} onChange={handleLearningChange} />
-                    ) : l.link}</td>
+                    <td>{l.title}</td>
+                    <td>{l.type}</td>
+                    <td><a href={l.link} target="_blank" rel="noopener noreferrer">{l.link}</a></td>
                     <td>
-                      {learningEditId === l.id ? (
-                        <button className="save-btn" onClick={handleLearningSave}>Save</button>
-                      ) : (
-                        <>
-                          <button className="edit-btn styled-edit" onClick={() => handleLearningEdit(l)}>Edit</button>
-                          <button className="delete-btn styled-delete" onClick={() => handleLearningDelete(l.id)}>Delete</button>
-                        </>
-                      )}
+                          <button onClick={() => {
+                            setLearningEditId(l.id);
+                            setLearningForm({ title: l.title, type: l.type, link: l.link });
+                        setShowEditLearningModal(true);
+                      }} className="action-btn edit" title="Edit">
+                        <FaEdit />
+                      </button>
+                      <button onClick={() => handleLearningDelete(l.id)} className="action-btn delete" title="Delete">
+                        <FaTrash />
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <button className="add-btn" onClick={() => setShowLearningModal(true)}>
-              Add Material
-            </button>
+          )}
+          <button className="add-btn" onClick={() => setShowAddLearningModal(true)}>
+            <span className="add-icon">➕</span>Add Learning Material
+          </button>
+          {/* Learning Material Add Modal */}
+          <Modal isOpen={showAddLearningModal} onClose={() => setShowAddLearningModal(false)}>
+            <div className="modal-header">Add Learning Material</div>
+            <div className="modal-body">
+              <div className="modal-form-row">
+                <label htmlFor="addLearningTitle">Title</label>
+                <input id="addLearningTitle" className="modal-input" placeholder="Title" value={learningForm.title} onChange={e => setLearningForm({ ...learningForm, title: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="addLearningType">Type</label>
+                <select id="addLearningType" className="modal-input" value={learningForm.type} onChange={e => setLearningForm({ ...learningForm, type: e.target.value })}>
+                  <option value="">Select Type</option>
+                  <option value="PDF">PDF</option>
+                  <option value="Video">Video</option>
+                  <option value="Link">Link</option>
+                </select>
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="addLearningLink">Link</label>
+                <input id="addLearningLink" className="modal-input" placeholder="Link" value={learningForm.link} onChange={e => setLearningForm({ ...learningForm, link: e.target.value })} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="add-btn" onClick={() => { handleLearningAdd(); setShowAddLearningModal(false); }} disabled={!learningForm.title || !learningForm.type || !learningForm.link}>Add Material</button>
+            </div>
+          </Modal>
+          {/* Learning Material Edit Modal */}
+          <Modal isOpen={showEditLearningModal} onClose={() => { setShowEditLearningModal(false); setLearningEditId(null); }}>
+            <div className="modal-header">Edit Learning Material</div>
+            <div className="modal-body">
+              <div className="modal-form-row">
+                <label htmlFor="editLearningTitle">Title</label>
+                <input id="editLearningTitle" className="modal-input" placeholder="Title" value={learningForm.title} onChange={e => setLearningForm({ ...learningForm, title: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="editLearningType">Type</label>
+                <select id="editLearningType" className="modal-input" value={learningForm.type} onChange={e => setLearningForm({ ...learningForm, type: e.target.value })}>
+                  <option value="">Select Type</option>
+                  <option value="PDF">PDF</option>
+                  <option value="Video">Video</option>
+                  <option value="Link">Link</option>
+                </select>
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="editLearningLink">Link</label>
+                <input id="editLearningLink" className="modal-input" placeholder="Link" value={learningForm.link} onChange={e => setLearningForm({ ...learningForm, link: e.target.value })} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="add-btn" onClick={() => { handleLearningEdit(learningEditId); setShowEditLearningModal(false); }} disabled={!learningForm.title || !learningForm.type || !learningForm.link}>Save</button>
+            </div>
+          </Modal>
           </div>
         );
-      case 'fees':
+    }
+    if (section === 'fees') {
         return (
           <div className="crud-table-card">
             <h2 className="table-title">Manage Fees</h2>
-            <Modal isOpen={showFeeModal} onClose={() => setShowFeeModal(false)}>
-              <div className="crud-form">
-                <h3>Add New Fee Record</h3>
-                <input type="text" name="student" placeholder="Student" value={feeForm.student} onChange={handleFeeChange} />
-                <input type="number" name="amount" placeholder="Amount" value={feeForm.amount} onChange={e => setFeeForm({ ...feeForm, amount: e.target.value === '' ? '' : parseInt(e.target.value, 10) })} min="0" step="1" />
-                <input type="text" name="status" placeholder="Status (Paid/Unpaid)" value={feeForm.status} onChange={handleFeeChange} />
-                <button className="add-btn" onClick={() => { handleFeeAdd(); setShowFeeModal(false); }} disabled={!feeForm.student || !feeForm.amount || !feeForm.status}>
-                  Add Fee
-                </button>
-              </div>
-            </Modal>
+          {feeLoading ? (
+            <p>Loading...</p>
+          ) : (
             <table className="crud-table styled-table">
               <thead>
                 <tr>
@@ -471,59 +715,89 @@ const AdminDashboard = () => {
                 {fees.map((f, idx) => (
                   <tr key={f.id}>
                     <td>{idx + 1}</td>
-                    <td>{feeEditId === f.id ? (
-                      <input type="text" name="student" value={feeForm.student} onChange={handleFeeChange} />
-                    ) : f.student}</td>
-                    <td>{feeEditId === f.id ? (
-                      <input type="number" name="amount" value={feeForm.amount} onChange={e => setFeeForm({ ...feeForm, amount: e.target.value === '' ? '' : parseInt(e.target.value, 10) })} min="0" step="1" />
-                    ) : f.amount}</td>
-                    <td>{feeEditId === f.id ? (
-                      <input type="text" name="status" value={feeForm.status} onChange={handleFeeChange} />
-                    ) : (
-                      <span className={`status-badge ${f.status.toLowerCase() === 'paid' ? 'status-active' : 'status-inactive'}`}>
-                        {f.status}
-                      </span>
-                    )}</td>
+                    <td>{f.studentName}</td>
+                    <td>{f.amount}</td>
+                    <td>{f.status}</td>
                     <td>
-                      {feeEditId === f.id ? (
-                        <button className="save-btn" onClick={handleFeeSave}>Save</button>
-                      ) : (
-                        <>
-                          <button className="edit-btn styled-edit" onClick={() => handleFeeEdit(f)}>Edit</button>
-                          <button className="delete-btn styled-delete" onClick={() => handleFeeDelete(f.id)}>Delete</button>
-                        </>
-                      )}
+                          <button onClick={() => {
+                            setFeeEditId(f.id);
+                            setFeeForm({ studentName: f.studentName, amount: f.amount, status: f.status });
+                        setShowEditFeeModal(true);
+                      }} className="action-btn edit" title="Edit">
+                        <FaEdit />
+                      </button>
+                      <button onClick={() => handleFeeDelete(f.id)} className="action-btn delete" title="Delete">
+                        <FaTrash />
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <button className="add-btn" onClick={() => setShowFeeModal(true)}>
-              Add Fee
-            </button>
+          )}
+          <button className="add-btn" onClick={() => setShowAddFeeModal(true)}>
+            <span className="add-icon">➕</span>Add Fee
+          </button>
+          {/* Fee Add Modal */}
+          <Modal isOpen={showAddFeeModal} onClose={() => setShowAddFeeModal(false)}>
+            <div className="modal-header">Add Fee</div>
+            <div className="modal-body">
+              <div className="modal-form-row">
+                <label htmlFor="addFeeStudentName">Student Name</label>
+                <input id="addFeeStudentName" className="modal-input" placeholder="Student Name" value={feeForm.studentName} onChange={e => setFeeForm({ ...feeForm, studentName: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="addFeeAmount">Amount</label>
+                <input id="addFeeAmount" className="modal-input" placeholder="Amount" type="number" value={feeForm.amount} onChange={e => setFeeForm({ ...feeForm, amount: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="addFeeStatus">Status</label>
+                <select id="addFeeStatus" className="modal-input" value={feeForm.status} onChange={e => setFeeForm({ ...feeForm, status: e.target.value })}>
+                  <option value="">Select Status</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Unpaid">Unpaid</option>
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="add-btn" onClick={() => { handleFeeAdd(); setShowAddFeeModal(false); }} disabled={!feeForm.studentName || !feeForm.amount || !feeForm.status}>Add Fee</button>
+            </div>
+          </Modal>
+          {/* Fee Edit Modal */}
+          <Modal isOpen={showEditFeeModal} onClose={() => { setShowEditFeeModal(false); setFeeEditId(null); }}>
+            <div className="modal-header">Edit Fee</div>
+            <div className="modal-body">
+              <div className="modal-form-row">
+                <label htmlFor="editFeeStudentName">Student Name</label>
+                <input id="editFeeStudentName" className="modal-input" placeholder="Student Name" value={feeForm.studentName} onChange={e => setFeeForm({ ...feeForm, studentName: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="editFeeAmount">Amount</label>
+                <input id="editFeeAmount" className="modal-input" placeholder="Amount" type="number" value={feeForm.amount} onChange={e => setFeeForm({ ...feeForm, amount: e.target.value })} />
+              </div>
+              <div className="modal-form-row">
+                <label htmlFor="editFeeStatus">Status</label>
+                <select id="editFeeStatus" className="modal-input" value={feeForm.status} onChange={e => setFeeForm({ ...feeForm, status: e.target.value })}>
+                  <option value="">Select Status</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Unpaid">Unpaid</option>
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="add-btn" onClick={() => { handleFeeEdit(feeEditId); setShowEditFeeModal(false); }} disabled={!feeForm.studentName || !feeForm.amount || !feeForm.status}>Save</button>
+            </div>
+          </Modal>
           </div>
         );
-      case 'notifications':
+    }
+    if (section === 'notifications') {
         return (
           <div className="crud-table-card">
             <h2 className="table-title">Manage Notifications</h2>
-            <Modal isOpen={showNotificationModal} onClose={() => setShowNotificationModal(false)}>
-              <div className="crud-form">
-                <h3>Add New Notification</h3>
-                <input type="text" name="title" placeholder="Title" value={notificationForm.title} onChange={handleNotificationChange} />
-                <textarea name="message" placeholder="Message" value={notificationForm.message} onChange={handleNotificationChange} />
-                <input type="date" name="date" placeholder="Date" value={notificationForm.date} onChange={handleNotificationChange} />
-                <select name="priority" value={notificationForm.priority} onChange={handleNotificationChange}>
-                  <option value="">Select Priority</option>
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                </select>
-                <button className="add-btn" onClick={() => { handleNotificationAdd(); setShowNotificationModal(false); }} disabled={!notificationForm.title || !notificationForm.message || !notificationForm.date || !notificationForm.priority}>
-                  Add Notification
-                </button>
-              </div>
-            </Modal>
+          {notificationLoading ? (
+            <p>Loading...</p>
+          ) : (
             <table className="crud-table styled-table">
               <thead>
                 <tr>
@@ -536,51 +810,106 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {notifications.map((notification, idx) => (
-                  <tr key={notification.id}>
+                {notifications.map((n, idx) => (
+                  <tr key={n.id}>
                     <td>{idx + 1}</td>
-                    <td>{notificationEditId === notification.id ? (
-                      <input type="text" name="title" value={notificationForm.title} onChange={handleNotificationChange} />
-                    ) : notification.title}</td>
-                    <td>{notificationEditId === notification.id ? (
-                      <textarea name="message" value={notificationForm.message} onChange={handleNotificationChange} />
-                    ) : notification.message}</td>
-                    <td>{notificationEditId === notification.id ? (
-                      <input type="date" name="date" value={notificationForm.date} onChange={handleNotificationChange} />
-                    ) : notification.date}</td>
-                    <td>{notificationEditId === notification.id ? (
-                      <select name="priority" value={notificationForm.priority} onChange={handleNotificationChange}>
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                      </select>
-                    ) : (
-                      <span className={`status-badge priority-${notification.priority.toLowerCase()}`}>
-                        {notification.priority}
-                      </span>
-                    )}</td>
+                    <td>{n.title}</td>
+                    <td>{n.message}</td>
+                    <td>{n.date}</td>
+                    <td>{n.priority}</td>
                     <td>
-                      {notificationEditId === notification.id ? (
-                        <button className="save-btn" onClick={handleNotificationSave}>Save</button>
-                      ) : (
-                        <>
-                          <button className="edit-btn styled-edit" onClick={() => handleNotificationEdit(notification)}>Edit</button>
-                          <button className="delete-btn styled-delete" onClick={() => handleNotificationDelete(notification.id)}>Delete</button>
-                        </>
-                      )}
+                          <button onClick={() => {
+                            setNotificationEditId(n.id);
+                            setNotificationForm({ title: n.title, message: n.message, date: n.date, priority: n.priority });
+                        setShowEditNotificationModal(true);
+                      }} className="action-btn edit" title="Edit">
+                        <FaEdit />
+                      </button>
+                      <button onClick={() => handleNotificationDelete(n.id)} className="action-btn delete" title="Delete">
+                        <FaTrash />
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <button className="add-btn" onClick={() => setShowNotificationModal(true)}>
-              Add Notification
-            </button>
+          )}
+          <button className="add-btn" onClick={() => setShowAddNotificationModal(true)}>
+            <span className="add-icon">➕</span>Add Notification
+          </button>
+          {/* Refactor Add Notification Modal */}
+          <Modal isOpen={showAddNotificationModal} onClose={() => setShowAddNotificationModal(false)}>
+            <div className="modal-content">
+              <button className="modal-close-btn" onClick={() => setShowAddNotificationModal(false)} aria-label="Close">&times;</button>
+              <div className="modal-header-title">Send Notification</div>
+              <div className="modal-body">
+                <div className="modal-form-row">
+                  <label htmlFor="addNotificationTitle">Title</label>
+                  <input id="addNotificationTitle" className="modal-input" placeholder="Title" value={notificationForm.title} onChange={e => setNotificationForm({ ...notificationForm, title: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="addNotificationMessage">Message</label>
+                  <input id="addNotificationMessage" className="modal-input" placeholder="Message" value={notificationForm.message} onChange={e => setNotificationForm({ ...notificationForm, message: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="addNotificationDate">Date</label>
+                  <input id="addNotificationDate" className="modal-input" type="date" value={notificationForm.date} onChange={e => setNotificationForm({ ...notificationForm, date: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="addNotificationPriority">Priority</label>
+                  <select id="addNotificationPriority" className="modal-input" value={notificationForm.priority} onChange={e => setNotificationForm({ ...notificationForm, priority: e.target.value })}>
+                    <option value="">Select Priority</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="modal-btn cancel-btn" onClick={() => setShowAddNotificationModal(false)}>Cancel</button>
+                <button className="modal-btn primary-btn" onClick={() => { handleNotificationAdd(); setShowAddNotificationModal(false); }} disabled={!notificationForm.title || !notificationForm.message || !notificationForm.date || !notificationForm.priority}>Send Notification</button>
+              </div>
+            </div>
+          </Modal>
+          {/* Refactor Edit Notification Modal */}
+          <Modal isOpen={showEditNotificationModal} onClose={() => { setShowEditNotificationModal(false); setNotificationEditId(null); }}>
+            <div className="modal-content">
+              <button className="modal-close-btn" onClick={() => { setShowEditNotificationModal(false); setNotificationEditId(null); }} aria-label="Close">&times;</button>
+              <div className="modal-header-title">Edit Notification</div>
+              <div className="modal-body">
+                <div className="modal-form-row">
+                  <label htmlFor="editNotificationTitle">Title</label>
+                  <input id="editNotificationTitle" className="modal-input" placeholder="Title" value={notificationForm.title} onChange={e => setNotificationForm({ ...notificationForm, title: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="editNotificationMessage">Message</label>
+                  <input id="editNotificationMessage" className="modal-input" placeholder="Message" value={notificationForm.message} onChange={e => setNotificationForm({ ...notificationForm, message: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="editNotificationDate">Date</label>
+                  <input id="editNotificationDate" className="modal-input" type="date" value={notificationForm.date} onChange={e => setNotificationForm({ ...notificationForm, date: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="editNotificationPriority">Priority</label>
+                  <select id="editNotificationPriority" className="modal-input" value={notificationForm.priority} onChange={e => setNotificationForm({ ...notificationForm, priority: e.target.value })}>
+                    <option value="">Select Priority</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="modal-btn cancel-btn" onClick={() => { setShowEditNotificationModal(false); setNotificationEditId(null); }}>Cancel</button>
+                <button className="modal-btn primary-btn" onClick={() => { handleNotificationEdit(notificationEditId); setShowEditNotificationModal(false); }} disabled={!notificationForm.title || !notificationForm.message || !notificationForm.date || !notificationForm.priority}>Save</button>
+              </div>
+            </div>
+          </Modal>
           </div>
         );
-      default:
-        return null;
     }
+    // Placeholder for other sections
+    return <div className="dashboard-overview"><h2>{section.charAt(0).toUpperCase() + section.slice(1)}</h2></div>;
   }
 
   return (
@@ -594,8 +923,6 @@ const AdminDashboard = () => {
             <span className="header-appname">SMART SHIKSHA</span>
           </div>
           <div className="header-right">
-            <span className="header-role">Admin</span>
-            <span className="header-username">Admin</span>
             <span className="header-avatar">A</span>
           </div>
         </header>
@@ -604,8 +931,26 @@ const AdminDashboard = () => {
           {renderSectionContent()}
         </section>
       </div>
+      <footer className="dashboard-footer">
+        Designed and Developed for Smart Shiksha
+      </footer>
+    </div>
+  );
+}
+
+// Modal component for pop-ups (copied from TeacherDashboard)
+const Modal = ({ isOpen, onClose, children }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <button className="modal-close-btn" onClick={onClose} aria-label="Close">&times;</button>
+        {children}
+      </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}

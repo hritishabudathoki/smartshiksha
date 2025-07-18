@@ -1,42 +1,40 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import Sidebar from '../components/Sidebar';
 import logoIcon from '../assets/wow.png';
 import '../styles/TeacherDashboard.css';
-import { FaClipboardList, FaClipboardCheck, FaBell } from 'react-icons/fa';
-
-const initialReports = [
-  { id: 1, title: 'Math Progress', student: 'John Doe', status: 'Reviewed' },
-  { id: 2, title: 'Science Project', student: 'Jane Smith', status: 'Pending' },
-];
-const initialAttendance = [
-  { id: 1, student: 'John Doe', date: '2024-06-01', status: 'Present' },
-  { id: 2, student: 'Jane Smith', date: '2024-06-01', status: 'Absent' },
-];
-const initialNotifications = [
-  { id: 1, title: 'Exam Schedule Update', message: 'Mathematics exam rescheduled to Friday', date: '2024-01-15', priority: 'High' },
-  { id: 2, title: 'Fee Due Reminder', message: 'Please pay your fees before month end', date: '2024-01-20', priority: 'Medium' },
-];
-const initialStudents = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', class: '10A' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', class: '10B' },
-];
+import { FaClipboardList, FaClipboardCheck, FaBell, FaEdit, FaTrash } from 'react-icons/fa';
+import { fetchStudents } from "../services/studentApi";
+import { fetchNotifications } from "../services/notificationApi";
+import {
+  fetchReports,
+  addReport,
+  updateReport,
+  deleteReport
+} from "../services/reportApi";
+import {
+  fetchAttendance,
+  addAttendance,
+  updateAttendance,
+  deleteAttendance
+} from "../services/attendanceApi";
 
 const TeacherDashboard = () => {
   // For demonstration, set role here. Replace with real auth logic as needed.
   const role = 'teacher'; // Change to 'admin' to see CRUD, 'teacher' for view-only
   const [section, setSection] = useState('home');
-  const [reports, setReports] = useState(initialReports);
-  const [attendance, setAttendance] = useState(initialAttendance);
-  const [notifications, setNotifications] = useState(initialNotifications);
-  // Reports CRUD
+  const [reports, setReports] = useState([]);
+  const [reportLoading, setReportLoading] = useState(true);
+  const [reportForm, setReportForm] = useState({ title: "", studentName: "", status: "" });
   const [reportEditId, setReportEditId] = useState(null);
-  const [reportForm, setReportForm] = useState({ title: '', student: '', status: '' });
+  const [attendance, setAttendance] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationLoading, setNotificationLoading] = useState(true);
   // Attendance CRUD
   const [attendanceEditId, setAttendanceEditId] = useState(null);
-  const [attendanceForm, setAttendanceForm] = useState({ student: '', date: '', status: '' });
+  const [attendanceForm, setAttendanceForm] = useState({ studentName: '', date: '', status: '' });
   // Students CRUD
-  const [students, setStudents] = useState(initialStudents);
+  const [students, setStudents] = useState([]);
   const [studentEditId, setStudentEditId] = useState(null);
   const [studentForm, setStudentForm] = useState({ name: '', email: '', class: '' });
 
@@ -46,18 +44,9 @@ const TeacherDashboard = () => {
   const [showStudentModal, setShowStudentModal] = useState(false);
 
   // Reports handlers
-  const handleReportEdit = (r) => { setReportEditId(r.id); setReportForm({ title: r.title, student: r.student, status: r.status }); };
-  const handleReportDelete = (id) => setReports(reports.filter((r) => r.id !== id));
   const handleReportChange = (e) => setReportForm({ ...reportForm, [e.target.name]: e.target.value });
-  const handleReportSave = () => { setReports(reports.map((r) => (r.id === reportEditId ? { ...r, ...reportForm } : r))); setReportEditId(null); setReportForm({ title: '', student: '', status: '' }); };
-  const handleReportAdd = () => { setReports([...reports, { id: Date.now(), ...reportForm }]); setReportForm({ title: '', student: '', status: '' }); };
 
   // Attendance handlers
-  const handleAttendanceEdit = (a) => { setAttendanceEditId(a.id); setAttendanceForm({ student: a.student, date: a.date, status: a.status }); };
-  const handleAttendanceDelete = (id) => setAttendance(attendance.filter((a) => a.id !== id));
-  const handleAttendanceChange = (e) => setAttendanceForm({ ...attendanceForm, [e.target.name]: e.target.value });
-  const handleAttendanceSave = () => { setAttendance(attendance.map((a) => (a.id === attendanceEditId ? { ...a, ...attendanceForm } : a))); setAttendanceEditId(null); setAttendanceForm({ student: '', date: '', status: '' }); };
-  const handleAttendanceAdd = () => { setAttendance([...attendance, { id: Date.now(), ...attendanceForm }]); setAttendanceForm({ student: '', date: '', status: '' }); };
 
   // Students handlers
   const handleStudentEdit = (s) => { setStudentEditId(s.id); setStudentForm({ name: s.name, email: s.email, class: s.class }); };
@@ -66,6 +55,129 @@ const TeacherDashboard = () => {
   const handleStudentSave = () => { setStudents(students.map((s) => (s.id === studentEditId ? { ...s, ...studentForm } : s))); setStudentEditId(null); setStudentForm({ name: '', email: '', class: '' }); };
   const handleStudentAdd = () => { setStudents([...students, { id: Date.now(), ...studentForm }]); setStudentForm({ name: '', email: '', class: '' }); };
 
+  async function loadStudents() {
+    try {
+      const data = await fetchStudents();
+      setStudents(data);
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function loadAttendance() {
+    try {
+      const data = await fetchAttendance();
+      setAttendance(data);
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleAttendanceAdd() {
+    try {
+      await addAttendance(attendanceForm);
+      setAttendanceForm({ studentName: '', date: '', status: '' });
+      loadAttendance();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleAttendanceEdit(id) {
+    try {
+      await updateAttendance(id, attendanceForm);
+      setAttendanceEditId(null);
+      setAttendanceForm({ studentName: '', date: '', status: '' });
+      loadAttendance();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleAttendanceDelete(id) {
+    if (!window.confirm("Delete this attendance record?")) return;
+    try {
+      await deleteAttendance(id);
+      loadAttendance();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  useEffect(() => {
+    if (section === 'reports') {
+      loadReports();
+    }
+    if (section === 'students') {
+      loadStudents();
+    }
+    if (section === 'notifications') {
+      loadNotifications();
+    }
+    if (section === 'attendance') {
+      loadAttendance();
+    }
+  }, [section]);
+
+  async function loadReports() {
+    setReportLoading(true);
+    try {
+      const data = await fetchReports();
+      setReports(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setReportLoading(false);
+  }
+
+  async function handleReportAdd() {
+    try {
+      await addReport(reportForm);
+      setReportForm({ title: "", studentName: "", status: "" });
+      loadReports();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleReportEdit(id) {
+    try {
+      await updateReport(id, reportForm);
+      setReportEditId(null);
+      setReportForm({ title: "", studentName: "", status: "" });
+      loadReports();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function handleReportDelete(id) {
+    if (!window.confirm("Delete this report?")) return;
+    try {
+      await deleteReport(id);
+      loadReports();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  useEffect(() => {
+    if (section === 'notifications') {
+      loadNotifications();
+    }
+  }, [section]);
+
+  async function loadNotifications() {
+    setNotificationLoading(true);
+    try {
+      const data = await fetchNotifications();
+      setNotifications(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setNotificationLoading(false);
+  }
+
   function renderSectionContent() {
     if (section === 'home') {
       return (
@@ -73,17 +185,17 @@ const TeacherDashboard = () => {
           <h2>Welcome, Teacher!</h2>
           <div className="overview-cards">
             <div className="overview-card">
-              <span className="overview-icon"><FaClipboardList /></span>
+              <img src={require('../assets/tot.png')} alt="Total Reports" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Total Reports</h3>
               <p>{reports.length}</p>
             </div>
             <div className="overview-card">
-              <span className="overview-icon"><FaClipboardCheck /></span>
+              <img src={require('../assets/att.png')} alt="Attendance Records" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Attendance Records</h3>
               <p>{attendance.length}</p>
             </div>
             <div className="overview-card">
-              <span className="overview-icon"><FaBell /></span>
+              <img src={require('../assets/noti.png')} alt="Active Notifications" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Active Notifications</h3>
               <p>{notifications.length}</p>
             </div>
@@ -108,44 +220,49 @@ const TeacherDashboard = () => {
                 <span role="img" aria-label="user" className="why-feature-icon">👤</span>
                 <div className="why-feature-title">User Friendly</div>
               </div>
-              <div className="why-feature-card">
-                <span role="img" aria-label="support" className="why-feature-icon">🧑‍💻</span>
-                <div className="why-feature-title">24x7 support</div>
-              </div>
-              <div className="why-feature-card">
-                <span role="img" aria-label="automation" className="why-feature-icon">⚙️</span>
-                <div className="why-feature-title">Automations</div>
-              </div>
             </div>
           </div>
           
           {/* Features Section */}
           <div className="features-section">
-            <h2 style={{ textAlign: 'center', margin: '40px 0 20px' }}>Features</h2>
+            <h2 className="features-title">Our Features</h2>
+            <div className="features-underline"></div>
             <div className="features-grid">
               <div className="feature-card">
-                <h3>Student Management</h3>
-                <p>Efficiently manage student records, attendance, and academic progress with comprehensive tracking tools.</p>
+                <div className="feature-img-banner">
+                  <img src={require('../assets/one.png')} alt="Learning Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Learning Management System</div>
+                  <div className="feature-desc">The LMS feature revolutionizes the teaching experience, enabling educators to effortlessly create, manage, and deliver online courses while closely monitoring student progress, making online education engaging and effective.</div>
+                </div>
               </div>
               <div className="feature-card">
-                <h3>Attendance Tracking</h3>
-                <p>Automated attendance system with real-time monitoring and detailed reports for better student engagement.</p>
+                <div className="feature-img-banner">
+                  <img src={require('../assets/two.png')} alt="School Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">School Management System</div>
+                  <div className="feature-desc">The School Management System streamlines administrative tasks for schools, offering a centralized platform to efficiently manage student records, attendance, timetables, and financial matters.</div>
+                </div>
               </div>
               <div className="feature-card">
-                <h3>Report Generation</h3>
-                <p>Generate detailed academic reports, progress cards, and performance analytics for informed decision making.</p>
+                <div className="feature-img-banner">
+                  <img src={require('../assets/three.png')} alt="Accounting Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Accounting Management System</div>
+                  <div className="feature-desc">Comprehensive Accounting simplifies financial management for educational institutions, offering tools for tracking budgets, expenses, and revenue, ensuring transparent and efficient financial operations.</div>
+                </div>
               </div>
               <div className="feature-card">
-                <h3>Notification System</h3>
-                <p>Instant notifications for important updates, exam schedules, and fee reminders to keep everyone informed.</p>
-              </div>
-              <div className="feature-card">
-                <h3>Fee Management</h3>
-                <p>Streamlined fee collection, payment tracking, and financial reporting for better financial management.</p>
-              </div>
-              <div className="feature-card">
-                <h3>Learning Materials</h3>
-                <p>Access to digital learning resources, study materials, and educational content for enhanced learning experience.</p>
+                <div className="feature-img-banner">
+                  <img src={require('../assets/four.png')} alt="Notification System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Notification System</div>
+                  <div className="feature-desc">Instant notifications for important updates and reminders, keeping everyone informed and engaged.</div>
+                </div>
               </div>
             </div>
           </div>
@@ -155,60 +272,89 @@ const TeacherDashboard = () => {
     if (section === 'reports') {
       return (
         <div className="crud-table-card">
-          <h2 className="table-title">Reports</h2>
+          <h2 className="table-title">Manage Reports</h2>
+          {reportLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <table className="crud-table styled-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Title</th>
+                  <th>Student</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((r, idx) => (
+                  <tr key={r.id}>
+                    <td>{idx + 1}</td>
+                    <td>{reportEditId === r.id ? (
+                      <input value={reportForm.title} onChange={e => setReportForm({ ...reportForm, title: e.target.value })} />
+                    ) : r.title}</td>
+                    <td>{reportEditId === r.id ? (
+                      <input value={reportForm.studentName} onChange={e => setReportForm({ ...reportForm, studentName: e.target.value })} />
+                    ) : r.studentName}</td>
+                    <td>{reportEditId === r.id ? (
+                      <select value={reportForm.status} onChange={e => setReportForm({ ...reportForm, status: e.target.value })}>
+                        <option value="">Select Status</option>
+                        <option value="Reviewed">Reviewed</option>
+                        <option value="Pending">Pending</option>
+                      </select>
+                    ) : r.status}</td>
+                    <td>
+                      {reportEditId === r.id ? (
+                        <>
+                          <button onClick={() => handleReportEdit(r.id)}>Save</button>
+                          <button onClick={() => setReportEditId(null)}>Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button className="action-btn edit" title="Edit" onClick={() => {
+                            setReportEditId(r.id);
+                            setReportForm({ title: r.title, studentName: r.studentName, status: r.status });
+                          }}><FaEdit /></button>
+                          <button className="action-btn delete" title="Delete" onClick={() => handleReportDelete(r.id)}><FaTrash /></button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <button className="add-btn" onClick={() => setShowReportModal(true)}>
+            <span className="add-icon">➕</span>Add Report
+          </button>
           <Modal isOpen={showReportModal} onClose={() => setShowReportModal(false)}>
-            <div className="crud-form">
-              <h3>Add New Report</h3>
-              <input type="text" name="title" placeholder="Title" value={reportForm.title} onChange={handleReportChange} />
-              <input type="text" name="student" placeholder="Student" value={reportForm.student} onChange={handleReportChange} />
-              <input type="text" name="status" placeholder="Status" value={reportForm.status} onChange={handleReportChange} />
-              <button className="add-btn" onClick={() => { handleReportAdd(); setShowReportModal(false); }} disabled={!reportForm.title || !reportForm.student || !reportForm.status}>
-                Add Report
-              </button>
+            <div className="modal-content">
+              <button className="modal-close-btn" onClick={() => setShowReportModal(false)} aria-label="Close">&times;</button>
+              <div className="modal-header-title">Add Report</div>
+              <div className="modal-body">
+                <div className="modal-form-row">
+                  <label htmlFor="reportTitle">Title</label>
+                  <input id="reportTitle" className="modal-input" placeholder="Title" value={reportForm.title} onChange={e => setReportForm({ ...reportForm, title: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="reportStudentName">Student Name</label>
+                  <input id="reportStudentName" className="modal-input" placeholder="Student Name" value={reportForm.studentName} onChange={e => setReportForm({ ...reportForm, studentName: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="reportStatus">Status</label>
+                  <select id="reportStatus" className="modal-input" value={reportForm.status} onChange={e => setReportForm({ ...reportForm, status: e.target.value })}>
+                    <option value="">Select Status</option>
+                    <option value="Reviewed">Reviewed</option>
+                    <option value="Pending">Pending</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="modal-btn cancel-btn" onClick={() => setShowReportModal(false)}>Cancel</button>
+                <button className="modal-btn primary-btn" onClick={() => { handleReportAdd(); setShowReportModal(false); }} disabled={!reportForm.title || !reportForm.studentName || !reportForm.status}>Add Report</button>
+              </div>
             </div>
           </Modal>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Student</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reports.map((report) => (
-                <tr key={report.id}>
-                  <td>{reportEditId === report.id ? (
-                    <input type="text" name="title" value={reportForm.title} onChange={handleReportChange} />
-                  ) : report.title}</td>
-                  <td>{reportEditId === report.id ? (
-                    <input type="text" name="student" value={reportForm.student} onChange={handleReportChange} />
-                  ) : report.student}</td>
-                  <td>{reportEditId === report.id ? (
-                    <input type="text" name="status" value={reportForm.status} onChange={handleReportChange} />
-                  ) : (
-                    <span className={`status-badge ${report.status.toLowerCase() === 'reviewed' ? 'status-active' : 'status-pending'}`}>
-                      {report.status}
-                    </span>
-                  )}</td>
-                  <td>
-                    {reportEditId === report.id ? (
-                      <button className="save-btn" onClick={handleReportSave}>Save</button>
-                    ) : (
-                      <>
-                        <button className="edit-btn styled-edit" onClick={() => handleReportEdit(report)}>Edit</button>
-                        <button className="delete-btn styled-delete" onClick={() => handleReportDelete(report.id)}>Delete</button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <button className="add-btn" onClick={() => setShowReportModal(true)}>
-            Add Report
-          </button>
         </div>
       );
     }
@@ -217,14 +363,33 @@ const TeacherDashboard = () => {
         <div className="crud-table-card">
           <h2 className="table-title">Attendance</h2>
           <Modal isOpen={showAttendanceModal} onClose={() => setShowAttendanceModal(false)}>
-            <div className="crud-form">
-              <h3>Add New Attendance Record</h3>
-              <input type="text" name="student" placeholder="Student" value={attendanceForm.student} onChange={handleAttendanceChange} />
-              <input type="date" name="date" placeholder="Date" value={attendanceForm.date} onChange={handleAttendanceChange} />
-              <input type="text" name="status" placeholder="Status" value={attendanceForm.status} onChange={handleAttendanceChange} />
-              <button className="add-btn" onClick={() => { handleAttendanceAdd(); setShowAttendanceModal(false); }} disabled={!attendanceForm.student || !attendanceForm.date || !attendanceForm.status}>
-                Add Attendance
-              </button>
+            <div className="modal-content">
+              <button className="modal-close-btn" onClick={() => setShowAttendanceModal(false)} aria-label="Close">&times;</button>
+              <div className="modal-header-title">Add New Attendance Record</div>
+              <div className="modal-body">
+                <div className="modal-form-row">
+                  <label htmlFor="attendanceStudentName">Student</label>
+                  <input id="attendanceStudentName" className="modal-input" type="text" name="studentName" placeholder="Student" value={attendanceForm.studentName} onChange={e => setAttendanceForm({ ...attendanceForm, studentName: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="attendanceDate">Date</label>
+                  <input id="attendanceDate" className="modal-input" type="date" name="date" placeholder="Date" value={attendanceForm.date} onChange={e => setAttendanceForm({ ...attendanceForm, date: e.target.value })} />
+                </div>
+                <div className="modal-form-row">
+                  <label htmlFor="attendanceStatus">Status</label>
+                  <select id="attendanceStatus" className="modal-input" name="status" value={attendanceForm.status} onChange={e => setAttendanceForm({ ...attendanceForm, status: e.target.value })}>
+                    <option value="">Select Status</option>
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="modal-btn cancel-btn" onClick={() => setShowAttendanceModal(false)}>Cancel</button>
+                <button className="modal-btn primary-btn" onClick={() => { handleAttendanceAdd(); setShowAttendanceModal(false); }} disabled={!attendanceForm.studentName || !attendanceForm.date || !attendanceForm.status}>
+                  Add Attendance
+                </button>
+              </div>
             </div>
           </Modal>
           <table className="crud-table styled-table">
@@ -240,13 +405,17 @@ const TeacherDashboard = () => {
               {attendance.map((a) => (
                 <tr key={a.id}>
                   <td>{attendanceEditId === a.id ? (
-                    <input type="text" name="student" value={attendanceForm.student} onChange={handleAttendanceChange} />
-                  ) : a.student}</td>
+                    <input type="text" name="studentName" value={attendanceForm.studentName} onChange={e => setAttendanceForm({ ...attendanceForm, studentName: e.target.value })} />
+                  ) : a.studentName}</td>
                   <td>{attendanceEditId === a.id ? (
-                    <input type="date" name="date" value={attendanceForm.date} onChange={handleAttendanceChange} />
+                    <input type="date" name="date" value={attendanceForm.date} onChange={e => setAttendanceForm({ ...attendanceForm, date: e.target.value })} />
                   ) : a.date}</td>
                   <td>{attendanceEditId === a.id ? (
-                    <input type="text" name="status" value={attendanceForm.status} onChange={handleAttendanceChange} />
+                    <select className="modal-input" name="status" value={attendanceForm.status} onChange={e => setAttendanceForm({ ...attendanceForm, status: e.target.value })}>
+                      <option value="">Select Status</option>
+                      <option value="Present">Present</option>
+                      <option value="Absent">Absent</option>
+                    </select>
                   ) : (
                     <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-active' : 'status-inactive'}`}>
                       {a.status}
@@ -254,11 +423,11 @@ const TeacherDashboard = () => {
                   )}</td>
                   <td>
                     {attendanceEditId === a.id ? (
-                      <button className="save-btn" onClick={handleAttendanceSave}>Save</button>
+                      <button className="save-btn" onClick={() => handleAttendanceEdit(a.id)}>Save</button>
                     ) : (
                       <>
-                        <button className="edit-btn styled-edit" onClick={() => handleAttendanceEdit(a)}>Edit</button>
-                        <button className="delete-btn styled-delete" onClick={() => handleAttendanceDelete(a.id)}>Delete</button>
+                        <button className="action-btn edit" title="Edit" onClick={() => { setAttendanceEditId(a.id); setAttendanceForm({ studentName: a.studentName, date: a.date, status: a.status }); }}><FaEdit /></button>
+                        <button className="action-btn delete" title="Delete" onClick={() => handleAttendanceDelete(a.id)}><FaTrash /></button>
                       </>
                     )}
                   </td>
@@ -267,7 +436,7 @@ const TeacherDashboard = () => {
             </tbody>
           </table>
           <button className="add-btn" onClick={() => setShowAttendanceModal(true)}>
-            Add Attendance
+            <span className="add-icon">➕</span>Add Attendance
           </button>
         </div>
       );
@@ -276,30 +445,36 @@ const TeacherDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Notifications</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Message</th>
-                <th>Date</th>
-                <th>Priority</th>
-              </tr>
-            </thead>
-            <tbody>
-              {notifications.map((notification) => (
-                <tr key={notification.id}>
-                  <td>{notification.title}</td>
-                  <td>{notification.message}</td>
-                  <td>{notification.date}</td>
-                  <td>
-                    <span className={`status-badge priority-${notification.priority.toLowerCase()}`}>
-                      {notification.priority}
-                    </span>
-                  </td>
+          {notificationLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <table className="crud-table styled-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Title</th>
+                  <th>Message</th>
+                  <th>Date</th>
+                  <th>Priority</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {notifications.map((n, idx) => (
+                  <tr key={n.id}>
+                    <td>{idx + 1}</td>
+                    <td>{n.title}</td>
+                    <td>{n.message}</td>
+                    <td>{n.date}</td>
+                    <td>
+                      <span className={`status-badge priority-${n.priority.toLowerCase()}`}>
+                        {n.priority}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       );
     }
@@ -310,14 +485,29 @@ const TeacherDashboard = () => {
           <div className="crud-table-card">
             <h2 className="table-title">Students</h2>
             <Modal isOpen={showStudentModal} onClose={() => setShowStudentModal(false)}>
-              <div className="crud-form">
-                <h3>Add New Student</h3>
-                <input type="text" name="name" placeholder="Name" value={studentForm.name} onChange={e => setStudentForm({ ...studentForm, name: e.target.value })} />
-                <input type="email" name="email" placeholder="Email" value={studentForm.email} onChange={e => setStudentForm({ ...studentForm, email: e.target.value })} />
-                <input type="text" name="class" placeholder="Class" value={studentForm.class} onChange={e => setStudentForm({ ...studentForm, class: e.target.value })} />
-                <button className="add-btn" onClick={() => { handleStudentAdd(); setShowStudentModal(false); }} disabled={!studentForm.name || !studentForm.email || !studentForm.class}>
-                  Add Student
-                </button>
+              <div className="modal-content">
+                <button className="modal-close-btn" onClick={() => setShowStudentModal(false)} aria-label="Close">&times;</button>
+                <div className="modal-header-title">Add New Student</div>
+                <div className="modal-body">
+                  <div className="modal-form-row">
+                    <label htmlFor="studentName">Name</label>
+                    <input id="studentName" className="modal-input" type="text" name="name" placeholder="Name" value={studentForm.name} onChange={e => setStudentForm({ ...studentForm, name: e.target.value })} />
+                  </div>
+                  <div className="modal-form-row">
+                    <label htmlFor="studentEmail">Email</label>
+                    <input id="studentEmail" className="modal-input" type="email" name="email" placeholder="Email" value={studentForm.email} onChange={e => setStudentForm({ ...studentForm, email: e.target.value })} />
+                  </div>
+                  <div className="modal-form-row">
+                    <label htmlFor="studentClass">Class</label>
+                    <input id="studentClass" className="modal-input" type="text" name="class" placeholder="Class" value={studentForm.class} onChange={e => setStudentForm({ ...studentForm, class: e.target.value })} />
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="modal-btn cancel-btn" onClick={() => setShowStudentModal(false)}>Cancel</button>
+                  <button className="modal-btn primary-btn" onClick={() => { handleStudentAdd(); setShowStudentModal(false); }} disabled={!studentForm.name || !studentForm.email || !studentForm.class}>
+                    Add Student
+                  </button>
+                </div>
               </div>
             </Modal>
             <table className="crud-table styled-table">
@@ -350,8 +540,8 @@ const TeacherDashboard = () => {
                         }}>Save</button>
                       ) : (
                         <>
-                          <button className="edit-btn styled-edit" onClick={() => { setStudentEditId(student.id); setStudentForm({ name: student.name, email: student.email, class: student.class }); }}>Edit</button>
-                          <button className="delete-btn styled-delete" onClick={() => handleStudentDelete(student.id)}>Delete</button>
+                          <button className="action-btn edit" title="Edit" onClick={() => { setStudentEditId(student.id); setStudentForm({ name: student.name, email: student.email, class: student.class }); }}><FaEdit /></button>
+                          <button className="action-btn delete" title="Delete" onClick={() => handleStudentDelete(student.id)}><FaTrash /></button>
                         </>
                       )}
                     </td>
@@ -360,7 +550,7 @@ const TeacherDashboard = () => {
               </tbody>
             </table>
             <button className="add-btn" onClick={() => setShowStudentModal(true)}>
-              Add Student
+              <span className="add-icon">➕</span>Add Student
             </button>
           </div>
         );
@@ -380,7 +570,7 @@ const TeacherDashboard = () => {
               <tbody>
                 {students.map((student) => (
                   <tr key={student.id}>
-                    <td>{student.name}</td>
+                    <td>{student.fullName}</td>
                     <td>{student.email}</td>
                     <td>{student.class}</td>
                   </tr>
@@ -404,8 +594,6 @@ const TeacherDashboard = () => {
             <span className="header-appname">SMART SHIKSHA</span>
           </div>
           <div className="header-right">
-            <span className="header-role">Teacher</span>
-            <span className="header-username">Teacher</span>
             <span className="header-avatar">T</span>
           </div>
         </header>
@@ -414,6 +602,9 @@ const TeacherDashboard = () => {
           {renderSectionContent()}
         </section>
       </div>
+      <footer className="dashboard-footer">
+        Designed and Developed for Smart Shiksha
+      </footer>
     </div>
   );
 };
@@ -423,10 +614,7 @@ const Modal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="modal-close" onClick={onClose}>&times;</button>
-        {children}
-      </div>
+      {children}
     </div>
   );
 };
