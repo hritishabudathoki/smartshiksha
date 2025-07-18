@@ -1,52 +1,118 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import logoIcon from '../assets/wow.png';
 import '../styles/StudentDashboard.css';
 import { FaChalkboardTeacher, FaBook, FaMoneyBillWave, FaBell } from 'react-icons/fa';
-
-const initialStudents = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', class: '10A' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', class: '10B' },
-];
-const initialClasses = [
-  { id: 1, name: 'Mathematics', teacher: 'Mr. Smith', schedule: 'Mon 10:00' },
-  { id: 2, name: 'Science', teacher: 'Ms. Johnson', schedule: 'Wed 12:00' },
-];
-const initialRoutine = [
-  { id: 1, day: 'Monday', class: 'Mathematics', time: '10:00' },
-  { id: 2, day: 'Wednesday', class: 'Science', time: '12:00' },
-];
-const initialLearning = [
-  { id: 1, title: 'Algebra Basics', type: 'PDF', link: 'https://www.khanacademy.org/math/algebra' },
-  { id: 2, title: 'Photosynthesis', type: 'Video', link: 'https://www.youtube.com/watch?v=CMiPYHNNg28' },
-];
-const initialFees = [
-  { id: 1, student: 'John Doe', amount: 5000, status: 'Paid' },
-  { id: 2, student: 'Jane Smith', amount: 5000, status: 'Unpaid' },
-];
-const initialReports = [
-  { id: 1, title: 'Math Progress', student: 'John Doe', status: 'Reviewed' },
-  { id: 2, title: 'Science Project', student: 'Jane Smith', status: 'Pending' },
-];
-const initialAttendance = [
-  { id: 1, student: 'John Doe', date: '2024-06-01', status: 'Present' },
-  { id: 2, student: 'Jane Smith', date: '2024-06-01', status: 'Absent' },
-];
-const initialNotifications = [
-  { id: 1, title: 'Exam Schedule Update', message: 'Mathematics exam rescheduled to Friday', date: '2024-01-15', priority: 'High' },
-  { id: 2, title: 'Fee Due Reminder', message: 'Please pay your fees before month end', date: '2024-01-20', priority: 'Medium' },
-];
+import { fetchRoutines } from "../services/routineApi";
+import { fetchLearningMaterials } from "../services/learningMaterialApi";
+import { fetchFees } from "../services/feeApi";
+import { fetchNotifications } from "../services/notificationApi";
+import { fetchReports } from "../services/reportApi";
+import { fetchAttendance } from "../services/attendanceApi";
 
 const StudentDashboard = () => {
   const [section, setSection] = useState('home');
-  const [students] = useState(initialStudents);
-  const [classes] = useState(initialClasses);
-  const [routine] = useState(initialRoutine);
-  const [learning] = useState(initialLearning);
-  const [fees] = useState(initialFees);
-  const [reports] = useState(initialReports);
-  const [attendance] = useState(initialAttendance);
-  const [notifications] = useState(initialNotifications);
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [routines, setRoutines] = useState([]);
+  const [routineLoading, setRoutineLoading] = useState(true);
+  const [learningMaterials, setLearningMaterials] = useState([]);
+  const [learningLoading, setLearningLoading] = useState(true);
+  const [fees, setFees] = useState([]);
+  const [feeLoading, setFeeLoading] = useState(true);
+  const [reports, setReports] = useState([]);
+  const [reportLoading, setReportLoading] = useState(true);
+  const [attendance, setAttendance] = useState([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationLoading, setNotificationLoading] = useState(true);
+
+  useEffect(() => {
+    if (section === 'routine') {
+      loadRoutines();
+    }
+    if (section === 'learning') {
+      loadLearningMaterials();
+    }
+    if (section === 'fees') {
+      loadFees();
+    }
+    if (section === 'notifications') {
+      loadNotifications();
+    }
+    if (section === 'reports') {
+      loadReports();
+    }
+    if (section === 'attendance') {
+      loadAttendance();
+    }
+  }, [section]);
+
+  async function loadRoutines() {
+    setRoutineLoading(true);
+    try {
+      const data = await fetchRoutines();
+      setRoutines(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setRoutineLoading(false);
+  }
+
+  async function loadLearningMaterials() {
+    setLearningLoading(true);
+    try {
+      const data = await fetchLearningMaterials();
+      setLearningMaterials(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setLearningLoading(false);
+  }
+
+  async function loadFees() {
+    setFeeLoading(true);
+    try {
+      const data = await fetchFees();
+      setFees(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setFeeLoading(false);
+  }
+
+  async function loadNotifications() {
+    setNotificationLoading(true);
+    try {
+      const data = await fetchNotifications();
+      setNotifications(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setNotificationLoading(false);
+  }
+
+  async function loadReports() {
+    setReportLoading(true);
+    try {
+      const data = await fetchReports();
+      setReports(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setReportLoading(false);
+  }
+
+  async function loadAttendance() {
+    setAttendanceLoading(true);
+    try {
+      const data = await fetchAttendance();
+      setAttendance(data);
+    } catch (e) {
+      alert(e.message);
+    }
+    setAttendanceLoading(false);
+  }
 
   function renderSectionContent() {
     if (section === 'home') {
@@ -55,22 +121,22 @@ const StudentDashboard = () => {
           <h2>Welcome, Student!</h2>
           <div className="overview-cards">
             <div className="overview-card">
-              <span className="overview-icon"><FaChalkboardTeacher /></span>
-              <h3>Your Classes</h3>
-              <p>{classes.length}</p>
+              <img src={require('../assets/cla.png')} alt="Reports" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <h3>Reports</h3>
+              <p>{reports.length}</p>
             </div>
             <div className="overview-card">
-              <span className="overview-icon"><FaBook /></span>
+              <img src={require('../assets/lea.png')} alt="Learning Materials" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Learning Materials</h3>
-              <p>{learning.length}</p>
+              <p>{learningMaterials.length}</p>
             </div>
             <div className="overview-card">
-              <span className="overview-icon"><FaMoneyBillWave /></span>
+              <img src={require('../assets/fee.png')} alt="Unpaid Fees" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Unpaid Fees</h3>
               <p>{fees.filter(f => f.status.toLowerCase() !== 'paid').length}</p>
             </div>
             <div className="overview-card">
-              <span className="overview-icon"><FaBell /></span>
+              <img src={require('../assets/noti.png')} alt="Active Notifications" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <h3>Active Notifications</h3>
               <p>{notifications.length}</p>
             </div>
@@ -95,13 +161,47 @@ const StudentDashboard = () => {
                 <span role="img" aria-label="user" className="why-feature-icon">👤</span>
                 <div className="why-feature-title">User Friendly</div>
               </div>
-              <div className="why-feature-card">
-                <span role="img" aria-label="support" className="why-feature-icon">🧑‍💻</span>
-                <div className="why-feature-title">24x7 support</div>
+            </div>
+          </div>
+          <div className="features-section">
+            <h2 className="features-title">Our Features</h2>
+            <div className="features-underline"></div>
+            <div className="features-grid">
+              <div className="feature-card">
+                <div className="feature-img-banner">
+                  <img src={require('../assets/one.png')} alt="Learning Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Learning Management System</div>
+                  <div className="feature-desc">The LMS feature revolutionizes the teaching experience, enabling educators to effortlessly create, manage, and deliver online courses while closely monitoring student progress, making online education engaging and effective.</div>
+                </div>
               </div>
-              <div className="why-feature-card">
-                <span role="img" aria-label="automation" className="why-feature-icon">⚙️</span>
-                <div className="why-feature-title">Automations</div>
+              <div className="feature-card">
+                <div className="feature-img-banner">
+                  <img src={require('../assets/two.png')} alt="School Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">School Management System</div>
+                  <div className="feature-desc">The School Management System streamlines administrative tasks for schools, offering a centralized platform to efficiently manage student records, attendance, timetables, and financial matters.</div>
+                </div>
+              </div>
+              <div className="feature-card">
+                <div className="feature-img-banner">
+                  <img src={require('../assets/three.png')} alt="Accounting Management System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Accounting Management System</div>
+                  <div className="feature-desc">Comprehensive Accounting simplifies financial management for educational institutions, offering tools for tracking budgets, expenses, and revenue, ensuring transparent and efficient financial operations.</div>
+                </div>
+              </div>
+              <div className="feature-card">
+                <div className="feature-img-banner">
+                  <img src={require('../assets/four.png')} alt="Notification System" />
+                </div>
+                <div className="feature-content">
+                  <div className="feature-title">Notification System</div>
+                  <div className="feature-desc">Instant notifications for important updates and reminders, keeping everyone informed and engaged.</div>
+                </div>
               </div>
             </div>
           </div>
@@ -112,26 +212,30 @@ const StudentDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Students</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Class</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((student, idx) => (
-                <tr key={student.id}>
-                  <td>{idx + 1}</td>
-                  <td>{student.name}</td>
-                  <td>{student.email}</td>
-                  <td>{student.class}</td>
+          <div className="table-container">
+            <table className="crud-table styled-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Class</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {students.length === 0 ? (
+                  <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No students found</td></tr>
+                ) : students.map((student, idx) => (
+                  <tr key={student.id}>
+                    <td>{idx + 1}</td>
+                    <td>{student.name}</td>
+                    <td>{student.email}</td>
+                    <td>{student.class}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
     }
@@ -139,26 +243,30 @@ const StudentDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Classes</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Class Name</th>
-                <th>Teacher</th>
-                <th>Schedule</th>
-              </tr>
-            </thead>
-            <tbody>
-              {classes.map((cls, idx) => (
-                <tr key={cls.id}>
-                  <td>{idx + 1}</td>
-                  <td>{cls.name}</td>
-                  <td>{cls.teacher}</td>
-                  <td>{cls.schedule}</td>
+          <div className="table-container">
+            <table className="crud-table styled-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Class Name</th>
+                  <th>Teacher</th>
+                  <th>Schedule</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {classes.length === 0 ? (
+                  <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No classes found</td></tr>
+                ) : classes.map((cls, idx) => (
+                  <tr key={cls.id}>
+                    <td>{idx + 1}</td>
+                    <td>{cls.name}</td>
+                    <td>{cls.teacher}</td>
+                    <td>{cls.schedule}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       );
     }
@@ -166,26 +274,34 @@ const StudentDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Routine</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Day</th>
-                <th>Class</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {routine.map((r, idx) => (
-                <tr key={r.id}>
-                  <td>{idx + 1}</td>
-                  <td>{r.day}</td>
-                  <td>{r.class}</td>
-                  <td>{r.time}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-container">
+            {routineLoading ? (
+              <p>Loading...</p>
+            ) : (
+              <table className="crud-table styled-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Day</th>
+                    <th>Class</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {routines.length === 0 ? (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No routines found</td></tr>
+                  ) : routines.map((r, idx) => (
+                    <tr key={r.id}>
+                      <td>{idx + 1}</td>
+                      <td>{r.day}</td>
+                      <td>{r.class}</td>
+                      <td>{r.time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       );
     }
@@ -193,46 +309,38 @@ const StudentDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Learning Materials</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Link</th>
-              </tr>
-            </thead>
-            <tbody>
-              {learning.map((l, idx) => (
-                <tr key={l.id}>
-                  <td>{idx + 1}</td>
-                  <td>{l.title}</td>
-                  <td>{l.type}</td>
-                  <td>
-                    <a 
-                      href={l.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="learning-link"
-                      onClick={() => window.open(l.link, '_blank')}
-                      style={{
-                        color: '#007bff',
-                        textDecoration: 'underline',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        backgroundColor: '#f8f9fa',
-                        border: '1px solid #dee2e6'
-                      }}
-                    >
-                      {l.type === 'PDF' ? 'View PDF' : 'Watch Video'}
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-container">
+            {learningLoading ? (
+              <p>Loading...</p>
+            ) : (
+              <table className="crud-table styled-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {learningMaterials.length === 0 ? (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No materials found</td></tr>
+                  ) : learningMaterials.map((l, idx) => (
+                    <tr key={l.id}>
+                      <td>{idx + 1}</td>
+                      <td>{l.title}</td>
+                      <td>{l.type}</td>
+                      <td>
+                        <a href={l.link} target="_blank" rel="noopener noreferrer">
+                          {l.type === 'PDF' ? 'View PDF' : 'Watch Video'}
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       );
     }
@@ -240,30 +348,38 @@ const StudentDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Fees</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Student</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fees.map((f, idx) => (
-                <tr key={f.id}>
-                  <td>{idx + 1}</td>
-                  <td>{f.student}</td>
-                  <td>{f.amount}</td>
-                  <td>
-                    <span className={`status-badge ${f.status.toLowerCase() === 'paid' ? 'status-active' : 'status-inactive'}`}>
-                      {f.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-container">
+            {feeLoading ? (
+              <p>Loading...</p>
+            ) : (
+              <table className="crud-table styled-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fees.length === 0 ? (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No fees found</td></tr>
+                  ) : fees.map((f, idx) => (
+                    <tr key={f.id}>
+                      <td>{idx + 1}</td>
+                      <td>{f.studentName}</td>
+                      <td>{f.amount}</td>
+                      <td>
+                        <span className={`status-badge ${f.status.toLowerCase() === 'paid' ? 'status-active' : 'status-inactive'}`}>
+                          {f.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       );
     }
@@ -271,30 +387,34 @@ const StudentDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Reports</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Title</th>
-                <th>Student</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reports.map((report, idx) => (
-                <tr key={report.id}>
-                  <td>{idx + 1}</td>
-                  <td>{report.title}</td>
-                  <td>{report.student}</td>
-                  <td>
-                    <span className={`status-badge ${report.status.toLowerCase() === 'reviewed' ? 'status-active' : 'status-pending'}`}>
-                      {report.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-container">
+            {reportLoading ? (
+              <p>Loading...</p>
+            ) : (
+              <table className="crud-table styled-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Student</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports.length === 0 ? (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No reports found</td></tr>
+                  ) : reports.map((r, idx) => (
+                    <tr key={r.id}>
+                      <td>{idx + 1}</td>
+                      <td>{r.title}</td>
+                      <td>{r.studentName}</td>
+                      <td>{r.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       );
     }
@@ -302,30 +422,38 @@ const StudentDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Attendance</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Student</th>
-                <th>Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendance.map((a, idx) => (
-                <tr key={a.id}>
-                  <td>{idx + 1}</td>
-                  <td>{a.student}</td>
-                  <td>{a.date}</td>
-                  <td>
-                    <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-present' : a.status.toLowerCase() === 'absent' ? 'status-absent' : 'status-late'}`}>
-                      {a.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-container">
+            {attendanceLoading ? (
+              <p>Loading...</p>
+            ) : (
+              <table className="crud-table styled-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attendance.length === 0 ? (
+                    <tr><td colSpan="4" style={{ textAlign: 'center', color: '#888' }}>No attendance records found</td></tr>
+                  ) : attendance.map((a, idx) => (
+                    <tr key={a.id}>
+                      <td>{idx + 1}</td>
+                      <td>{a.studentName}</td>
+                      <td>{a.date}</td>
+                      <td>
+                        <span className={`status-badge ${a.status.toLowerCase() === 'present' ? 'status-present' : a.status.toLowerCase() === 'absent' ? 'status-absent' : 'status-late'}`}>
+                          {a.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       );
     }
@@ -333,57 +461,40 @@ const StudentDashboard = () => {
       return (
         <div className="crud-table-card">
           <h2 className="table-title">Notifications</h2>
-          <table className="crud-table styled-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Title</th>
-                <th>Message</th>
-                <th>Date</th>
-                <th>Priority</th>
-              </tr>
-            </thead>
-            <tbody>
-              {notifications.map((notification, idx) => (
-                <tr key={notification.id}>
-                  <td>{idx + 1}</td>
-                  <td>{notification.title}</td>
-                  <td>{notification.message}</td>
-                  <td>{notification.date}</td>
-                  <td>
-                    <span className={`status-badge priority-${notification.priority.toLowerCase()}`}>
-                      {notification.priority}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
-    }
-    if (section === 'profile') {
-      // Example: Replace with real user data if available
-      const user = { username: 'studentuser', email: 'student@example.com' };
-      return (
-        <div className="crud-table-card">
-          <h2 className="table-title">Profile</h2>
-          <table className="crud-table styled-table" style={{ maxWidth: 400, margin: '0 auto' }}>
-            <tbody>
-              <tr>
-                <th style={{ width: '120px' }}>Username</th>
-                <td>{user.username}</td>
-              </tr>
-              <tr>
-                <th>Email</th>
-                <td>{user.email}</td>
-              </tr>
-              <tr>
-                <th>Password</th>
-                <td>••••••••••</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="table-container">
+            {notificationLoading ? (
+              <p>Loading...</p>
+            ) : (
+              <table className="crud-table styled-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Message</th>
+                    <th>Date</th>
+                    <th>Priority</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {notifications.length === 0 ? (
+                    <tr><td colSpan="5" style={{ textAlign: 'center', color: '#888' }}>No notifications found</td></tr>
+                  ) : notifications.map((n, idx) => (
+                    <tr key={n.id}>
+                      <td>{idx + 1}</td>
+                      <td>{n.title}</td>
+                      <td>{n.message}</td>
+                      <td>{n.date}</td>
+                      <td>
+                        <span className={`status-badge priority-${n.priority.toLowerCase()}`}>
+                          {n.priority}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       );
     }
@@ -400,8 +511,6 @@ const StudentDashboard = () => {
             <span className="header-appname">SMART SHIKSHA</span>
           </div>
           <div className="header-right">
-            <span className="header-role">Student</span>
-            <span className="header-username">Student</span>
             <span className="header-avatar">S</span>
           </div>
         </header>
@@ -410,6 +519,9 @@ const StudentDashboard = () => {
           {renderSectionContent()}
         </section>
       </div>
+      <footer className="dashboard-footer">
+        Designed and Developed for Smart Shiksha
+      </footer>
     </div>
   );
 };
