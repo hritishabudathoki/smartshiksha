@@ -29,7 +29,6 @@ const navConfig = {
     { label: 'Reports', key: 'reports', icon: <FaClipboardList /> },
     { label: 'Attendance', key: 'attendance', icon: <FaClipboardCheck /> },
     { label: 'Notifications', key: 'notifications', icon: <FaBell /> },
-    { label: 'Profile', key: 'profile', icon: <FaUserGraduate /> },
     { label: 'Logout', key: 'logout', icon: <FaSignOutAlt />, isLogout: true },
   ],
 };
