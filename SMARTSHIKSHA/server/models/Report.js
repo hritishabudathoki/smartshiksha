@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    status: {
+    grades: {
       type: DataTypes.STRING,
       allowNull: false
     }

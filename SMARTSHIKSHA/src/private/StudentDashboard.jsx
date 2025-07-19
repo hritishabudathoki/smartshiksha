@@ -397,7 +397,7 @@ const StudentDashboard = () => {
                     <th>#</th>
                     <th>Title</th>
                     <th>Student</th>
-                    <th>Status</th>
+                    <th>Grades</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -408,7 +408,7 @@ const StudentDashboard = () => {
                       <td>{idx + 1}</td>
                       <td>{r.title}</td>
                       <td>{r.studentName}</td>
-                      <td>{r.status}</td>
+                      <td>{r.grades}</td>
                     </tr>
                   ))}
                 </tbody>
