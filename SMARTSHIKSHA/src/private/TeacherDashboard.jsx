@@ -25,7 +25,7 @@ const TeacherDashboard = () => {
   const [section, setSection] = useState('home');
   const [reports, setReports] = useState([]);
   const [reportLoading, setReportLoading] = useState(true);
-  const [reportForm, setReportForm] = useState({ title: "", studentName: "", status: "" });
+  const [reportForm, setReportForm] = useState({ title: "", studentName: "", grades: "" });
   const [reportEditId, setReportEditId] = useState(null);
   const [attendance, setAttendance] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -133,7 +133,7 @@ const TeacherDashboard = () => {
   async function handleReportAdd() {
     try {
       await addReport(reportForm);
-      setReportForm({ title: "", studentName: "", status: "" });
+      setReportForm({ title: "", studentName: "", grades: "" });
       loadReports();
     } catch (e) {
       alert(e.message);
@@ -144,7 +144,7 @@ const TeacherDashboard = () => {
     try {
       await updateReport(id, reportForm);
       setReportEditId(null);
-      setReportForm({ title: "", studentName: "", status: "" });
+      setReportForm({ title: "", studentName: "", grades: "" });
       loadReports();
     } catch (e) {
       alert(e.message);
@@ -282,7 +282,7 @@ const TeacherDashboard = () => {
                   <th>#</th>
                   <th>Title</th>
                   <th>Student</th>
-                  <th>Status</th>
+                  <th>Grades</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -297,12 +297,15 @@ const TeacherDashboard = () => {
                       <input value={reportForm.studentName} onChange={e => setReportForm({ ...reportForm, studentName: e.target.value })} />
                     ) : r.studentName}</td>
                     <td>{reportEditId === r.id ? (
-                      <select value={reportForm.status} onChange={e => setReportForm({ ...reportForm, status: e.target.value })}>
-                        <option value="">Select Status</option>
-                        <option value="Reviewed">Reviewed</option>
-                        <option value="Pending">Pending</option>
+                      <select value={reportForm.grades} onChange={e => setReportForm({ ...reportForm, grades: e.target.value })}>
+                        <option value="">Select Grade</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="F">F</option>
                       </select>
-                    ) : r.status}</td>
+                    ) : r.grades}</td>
                     <td>
                       {reportEditId === r.id ? (
                         <>
@@ -313,7 +316,7 @@ const TeacherDashboard = () => {
                         <>
                           <button className="action-btn edit" title="Edit" onClick={() => {
                             setReportEditId(r.id);
-                            setReportForm({ title: r.title, studentName: r.studentName, status: r.status });
+                            setReportForm({ title: r.title, studentName: r.studentName, grades: r.grades });
                           }}><FaEdit /></button>
                           <button className="action-btn delete" title="Delete" onClick={() => handleReportDelete(r.id)}><FaTrash /></button>
                         </>
@@ -341,17 +344,20 @@ const TeacherDashboard = () => {
                   <input id="reportStudentName" className="modal-input" placeholder="Student Name" value={reportForm.studentName} onChange={e => setReportForm({ ...reportForm, studentName: e.target.value })} />
                 </div>
                 <div className="modal-form-row">
-                  <label htmlFor="reportStatus">Status</label>
-                  <select id="reportStatus" className="modal-input" value={reportForm.status} onChange={e => setReportForm({ ...reportForm, status: e.target.value })}>
-                    <option value="">Select Status</option>
-                    <option value="Reviewed">Reviewed</option>
-                    <option value="Pending">Pending</option>
+                  <label htmlFor="reportGrades">Grades</label>
+                  <select id="reportGrades" className="modal-input" value={reportForm.grades} onChange={e => setReportForm({ ...reportForm, grades: e.target.value })}>
+                    <option value="">Select Grade</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="F">F</option>
                   </select>
                 </div>
               </div>
               <div className="modal-footer">
                 <button className="modal-btn cancel-btn" onClick={() => setShowReportModal(false)}>Cancel</button>
-                <button className="modal-btn primary-btn" onClick={() => { handleReportAdd(); setShowReportModal(false); }} disabled={!reportForm.title || !reportForm.studentName || !reportForm.status}>Add Report</button>
+                <button className="modal-btn primary-btn" onClick={() => { handleReportAdd(); setShowReportModal(false); }} disabled={!reportForm.title || !reportForm.studentName || !reportForm.grades}>Add Report</button>
               </div>
             </div>
           </Modal>

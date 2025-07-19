@@ -20,8 +20,8 @@ router.get('/', async (req, res) => {
 // Add report (teacher only)
 router.post('/', isTeacher, async (req, res) => {
   try {
-    const { title, studentName, status } = req.body;
-    const report = await Report.create({ title, studentName, status });
+    const { title, studentName, grades } = req.body;
+    const report = await Report.create({ title, studentName, grades });
     res.status(201).json(report);
   } catch (err) {
     res.status(500).json({ message: 'Failed to add report', error: err.message });
@@ -31,10 +31,10 @@ router.post('/', isTeacher, async (req, res) => {
 // Edit report (teacher only)
 router.put('/:id', isTeacher, async (req, res) => {
   try {
-    const { title, studentName, status } = req.body;
+    const { title, studentName, grades } = req.body;
     const report = await Report.findByPk(req.params.id);
     if (!report) return res.status(404).json({ message: 'Report not found' });
-    await report.update({ title, studentName, status });
+    await report.update({ title, studentName, grades });
     res.json(report);
   } catch (err) {
     res.status(500).json({ message: 'Failed to update report', error: err.message });
