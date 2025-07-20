@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/routines";
+const API_URL = "http://localhost:5001/api/routines";
 
 function getToken() {
   return localStorage.getItem("token");

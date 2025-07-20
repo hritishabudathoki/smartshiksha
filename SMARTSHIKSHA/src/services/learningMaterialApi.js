@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/learning-materials";
+const API_URL = "http://localhost:5001/api/learning-materials";
 
 function getToken() {
   return localStorage.getItem("token");
