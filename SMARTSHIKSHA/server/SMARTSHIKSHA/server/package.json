@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "jest-circus": "^30.0.5",
+    "sequelize-mock": "^0.10.2",
+    "supertest": "^7.1.4"
+  }
+}
